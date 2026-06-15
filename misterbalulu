@@ -1,0 +1,42 @@
+import time
+
+print("Olá mundo!, bem vindo a calculadora mais fantastica de todas!")
+time.sleep(2)
+print("Para fechar a calculadora, digitar 'sair'")
+
+while True:
+  operacao = input("qual merda de conta tu quer fazer? digite os sinais: +, -, * ou /: ")
+
+  if operacao == 'sair':
+    print("saiu poque é um merda de burro")
+    time.sleep(1)
+    break
+
+  if operacao not in ['+', '-', '*', '/']:
+    print("Operação deu merda, usar apenas +, -, * ou /.")
+    time.sleep(1)
+    continue
+
+  try:
+    numero_uno = float(input("Digite o 1° número: "))
+    numero_duno = float(input("Digite o 2° número: "))
+
+    if operacao == '+':
+      resultado = numero_uno + numero_duno
+    elif operacao == '-':
+      resultado = numero_uno - numero_duno
+    elif operacao == '*':
+      resultado = numero_uno * numero_duno
+    elif operacao == '/':
+     
+      if numero_duno == 0:
+        print("não dá pra dividir por zero ratão")
+        time.sleep(1)
+        continue
+      resultado = numero_uno / numero_duno
+
+    print(f"O resultado é: {resultado}")
+
+  except ValueError:
+    print("Irmão, é uma calculadora, não uma IA. Digite apenas números!")
+    time.sleep(1)
