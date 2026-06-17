@@ -2,8 +2,7 @@ import time
 import random
 
 historico = []
-caracteres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-estoque = "0123456789"
+
 
 while True:
   time.sleep(2)
