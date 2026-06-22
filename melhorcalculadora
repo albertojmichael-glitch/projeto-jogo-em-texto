@@ -73,11 +73,11 @@ while True:
                     numero_atual = float(numero_texto)
 
                     if numero_atual == 0:
-                    print("Indeterminado")
-                    time.sleep(1)
-                    resultado = "Erro de sintaxe" #aq é para caso o animal colocar zero(0) na divisão
-                    time.sleep(2)
-                    continue
+                        print("Indeterminado")
+                        time.sleep(1)
+                        resultado = "Erro de sintaxe" #aq é para caso o animal colocar zero(0) na divisão
+                        time.sleep(2)
+                        continue
                     
                 
                 resultado = resultado / numero_atual
