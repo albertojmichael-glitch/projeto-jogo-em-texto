@@ -399,6 +399,19 @@ descricoes_itens = {
     "pedra": "Uma pedra comum e redonda. Pesada, fria e completamente inútil."
 }
 
+def jogar_minotauro():
+    # A palavra 'global' avisa o Python que esta função pode modificar suas variáveis principais
+    global hp, sala_atual, inventario, fios_cortados_inventario 
+    
+    print("\n" + "="*50)
+    print("Você entra no Quarto 4... e a porta bate com força atrás de você!")
+    time.sleep(2)
+    print("Você escuta uma respiração pesada. Um labirinto se forma.")
+    print("O MINOTAURO ESTÁ AQUI.")
+    time.sleep(2)
+                 
+                
+    
 
 
 
