@@ -35,12 +35,21 @@ DOS_AMARELO = '\033[93m'  # Para destacar itens e luz
 DOS_VERMELHO = '\033[91m' # Para sangue e erros críticos
 RESET = '\033[0m'         # Reseta a cor para o padrão do terminal
 
-# --- FUNÇÃO DE DIGITAR ---
-def digitar(texto, tempo=0.03):
+# --- FUNÇÃO DE DIGITAR (COM SISTEMA DE PÂNICO) ---
+def digitar(texto, tempo_base=0.03):
+    global hp, turnos_no_escuro # Puxa as variáveis para saber o estado do jogador
+    
+    # Acelera a velocidade do texto baseado no desespero
+    tempo_real = tempo_base
+    if hp <= 1:
+        tempo_real = 0.005  # Pânico absoluto (muito rápido)
+    elif turnos_no_escuro >= 3:
+        tempo_real = 0.01   # Medo (rápido)
+        
     for letra in texto:
         sys.stdout.write(letra)
         sys.stdout.flush()
-        time.sleep(tempo)
+        time.sleep(tempo_real)
     print() # Pula linha no final
 
 # --- FUNÇÃO PARA LIMPAR TELA (Web-Safe) ---
@@ -103,6 +112,29 @@ def menu_inicial():
             furia_noite = 2                       # Animatrônicos correm o dobro após as 03h
             dificuldade_escolhida = "PESADELO"
             break
+        
+        elif opcao == "1983":
+            # O MODO SECRETO: CUSTOM NIGHT
+            limpar_tela()
+            digitar(f"{DOS_VERMELHO}[ ACESSO RESTRITO: NOITE CUSTOMIZADA ]{RESET}")
+            print("Defina a agressividade das máquinas.")
+            
+            try:
+                furia_noite = int(input(f"{DOS_VERDE}Fúria dos Animatrônicos (1 a 10): {RESET}"))
+                energia_min_noite = int(input(f"{DOS_VERDE}Bateria Inicial do Restaurante (0 a 100): {RESET}"))
+                energia_max_noite = energia_min_noite
+            except:
+                print("Erro de digitação. Definindo para o nível máximo!")
+                furia_noite = 10
+                energia_min_noite = 10
+                
+            hp = 3
+            chance_sprint_minotauro = 50
+            turnos_perseguidor_aviso = 2
+            turnos_perseguidor_morte = 3
+            dificuldade_escolhida = "CUSTOM"
+            break
+        
         else:
             print(f"{DOS_VERMELHO}OPÇÃO INVÁLIDA. TENTE NOVAMENTE.{RESET}")
             
@@ -178,7 +210,7 @@ mapa = {
 
         "esquerda": "balcão",
 
-        "itens": ["tesoura", "pelucias", "doce"]
+        "itens": ["tesoura quebrada", "pelucias", "doce", "moeda velha"]
 
     },
 
@@ -215,25 +247,24 @@ mapa = {
     },
 
     "sala de jantar": {
-
         "descrição": "tem varias mesas de jantar com confetes, é um lugar bem grande, está bem sujo",
-
         "inspecionaveis": {
             "jornal": "Caso Vilas Boas: Três desaparecimentos em 1994, seguem sem solução",
             "mesas": "Tem pedaços de papel, confetes coloridos, sujeira e algumas baratas."
-
         },
-
         "frente": "duas salas de festas",
-
         "direita": "corredor",
-
         "atrás": "entrada",
-
-        "esquerda": "sala dos fundos",
-
+        "esquerda": "porta dos fundos", # <--- Mudou! Agora ele não entra direto!
         "itens": ["confete", "isqueiro"]
 
+    },
+
+    "porta dos fundos": {
+        "descrição": "Uma pesada porta de metal. Está trancada a chave.",
+        "atrás": "sala de jantar",
+        "frente": "Você empurra, mas não cede.",
+        "itens": []
     },
 
     "corredor": {
@@ -329,6 +360,15 @@ mapa = {
 
     },
 
+    "cozinha privada": {
+
+        "descrição": "Uma cozinha industrial imunda. O cheiro do mofo é insuportável. As panelas estão enferrujadas.",
+
+        "atrás": "corredor",
+
+        "itens": ["fita isolante"]
+    },
+
     "duas salas de festas" : {
 
         "descrição": "voce avança e encontra duas salas festas, a sala 1 e sala 2, a sala 1 parece mais calma",
@@ -349,113 +389,97 @@ mapa = {
 
     "sala 1": {
 
-        "descrição": "voce entra na sala de festas 1, está tudo parado e calmo, mas você escuta um barulho vindo do palco de apresentações",
+        "descrição": "voce entra na sala de festas 1, está tudo parado e calmo. Há uma máquina de fliperama velha no canto.",
 
-        "atrás": "sala de jantar",
+        "atrás": "duas salas de festas", 
 
-        "esconder": "voce se enfia dentro de uma mesa pequena, voce escuta passos pesados roboticos, e um cheiro de plastico queimado",
+        "frente": "palco",
 
-        "frente": "palco", #uma mão te agarra para dentro do palco e voce é morto, 'final morte'
+        "direita": "sala 2",
 
-        "direita": "sala de festas 2",
-
-        "esquerda": "palco", #voce morre tbm
+        "esquerda": "sala de fliperamas",
 
         "itens": []
 
+    },
+
+    "sala de fliperamas": {
+        "descrição": "O chão tem carpete neon sujo. Há três máquinas funcionando fracamente: 'Sorte' (Caça-Níqueis), 'Jokenpo' e 'Adivinha'. Digite 'jogar [nome do jogo]'.",
+        "direita": "sala 1",
+        "itens": []
     },
 
     "sala 2": {
+        "descrição": "voce da de cara com um animatronico enorme no escuro! Os olhos dele brilham e um zumbido cresce. Você tem poucos segundos para recuar!",
 
-        "descrição": "voce da de cara com um animatronico, voce tem alguns segundos para pensar o que fazer",
+        "esquerda": "sala 1",
 
-        "frente": "morte", #final morte
+        "atrás": "duas salas de festas",
 
-        "atrás": "morte", #robo 
+        "frente": "morte", # Se ele tentar abraçar o bicho ou seguir reto kkkk
 
-        "esconder": "tarde de mais, ele te viu", #morte
-
-        "direita": "morte", #final morte
-
-        "esquerda": "sala de festas 1",
+        "direita": "morte", 
 
         "itens": []
 
+    },
+
+    "palco": {
+
+        "descrição": "Você sobe no palco fedorento. As cortinas estão rasgadas. Algo terrível te observa nas sombras...",
+
+        "atrás": "sala 1",
+
+        "frente": "morte", # O bicho puxa ele
+
+        "itens": []
     },
 
     "sala dos fundos": {
-
-        "descrição": "voce avança para a sala dos fundos, tem um corredor fundo com 4 portas, todas com a cor amarela, este lugar tem uma atmosfera pesada",
-
-        "frente": "voce avança na escuridão, não enxerga nada", #final morte
-
+        "descrição": "Um corredor denso e escuro. Há 5 portas com placas: 'pelucias', 'equipamento', 'animatronicos', 'mercadorias' e, no fundo, 'energia'. À esquerda fica a 'cozinha principal'.",
         "atrás": "sala de jantar",
-
-        "porta 1": "quarto 1",
-
-        "porta 2": "quarto 2",
-
-        "porta 3": "quarto 3",
-
-        "porta 4": "quarto 4",
-
-        "esquerda": "parede velha",
-
-        "direita": "parede velha",
-
+        "esquerda": "cozinha principal",
+        "pelucias": "sala de pelucias",
+        "equipamento": "sala de equipamento",
+        "animatronicos": "sala de animatronicos",
+        "mercadorias": "sala de mercadorias",
+        "energia": "sala de energia", # Onde o Minotauro vive!
         "itens": []
 
     },
 
-    "quarto 1": {
-
-        "descrição": "porta emperrada",
-
-        "frente": "voce força a porta, nada acontece",
-
-        "atrás": "sala dos fundos",
-
-        "esquerda": "voce avança na escuridão, não enxerga nada", #final morte
-
+    "cozinha principal": {
+        "descrição": "A antiga cozinha que preparava comida para todos. Panelas enferrujadas e pratos quebrados pelo chão. Tem uma caixa de primeiros socorros aberta.",
         "direita": "sala dos fundos",
-
-        "itens": []
-
+        "itens": ["remedio", "pizza mofada"]
     },
 
-    "quarto 2": {
-
-        "descrição": "porta emperrada",
-
-        "frente": "voce força a porta, nada acontece",
-
+    # --- SALAS INÚTEIS DA LORE (Mas que dão medo!) ---
+    "sala de pelucias": {
+        "descrição": "Uma sala cheia de pelúcias apodrecidas. Os olhos de plástico parecem te seguir. Melhor não ficar aqui.",
         "atrás": "sala dos fundos",
-
-        "esquerda": "sala dos fundos",
-
-        "direita": "voce avança na escuridão, não enxerga nada", #final morte
-
         "itens": []
-
     },
-
-    "quarto 3": {
-
-        "descrição": "é uma sala escura, tem apenas uma mesa e alguns endoesqueletos no fundo, voce sente um sentimento ruim",
-
-        "frente": "uma mão te agarra por trás e voce desmaia", #final springlock
-
+    "sala de equipamento": {
+        "descrição": "Apenas ferramentas velhas e graxa seca pelo chão.",
         "atrás": "sala dos fundos",
-
-        "esquerda": "uma mão te agarra por trás e voce desmaia",
-
-        "direita": "uma mão te agarra por trás e voce desmaia",
-
         "itens": []
+    },
+    "sala de animatronicos": {
+        "descrição": "Você abre a porta e vê várias carcaças de metal desmontadas. Uma delas vira a cabeça devagar para você! Você bate a porta na mesma hora.",
+        "atrás": "sala dos fundos", # Empurra o jogador de volta de susto
+        "itens": []
+    },
+    "sala de mercadorias": {
+        "descrição": "Caixas de papelão mofadas com camisetas do restaurante que nunca foram vendidas.",
+        "atrás": "sala dos fundos",
+        "itens": []
+
+
 
     },
 
-    "quarto 4": {
+    "sala de energia": {
         "descrição": "Que quarto deprimente...",
         "inspecionaveis": {
             "celular quebrado": "Parece ser dela..."
@@ -466,7 +490,6 @@ mapa = {
 
     }
 
-   
 
 }
 
@@ -500,7 +523,12 @@ descricoes_itens = {
     "pano aceso": "O pano queima com uma chama irregular, iluminando as sombras e cheirando a poeira queimada.",
     "fosforo": "Uma caixinha de fósforos quase vazia. A madeira está um pouco úmida, mas o atrito ainda deve funcionar.",
     "garrafa vazia": "Uma garrafa de vinho suja, se cair no chão vai fazer um barulho alto o suficiente para atrair... algo.",
-    "pedra": "Uma pedra comum e redonda. Pesada, fria e completamente inútil."
+    "pedra": "Uma pedra comum e redonda. Pesada, fria e completamente inútil.",
+    "moeda velha": "Uma ficha de fliperama enferrujada de 1980 da Villas Boas.",
+    "chave da cozinha": "Uma chave prateada com um chaveiro sujo de graxa.",
+    "remedio": "Um frasco de analgésicos vencidos. Pode ajudar com a dor.",
+    "pizza mofada": "Um pedaço de pizza de 1994. Tem uma cor verde fluorescente. Eu não comeria isso.",
+    "fita isolante": "Um rolo de fita preta grossa. Metade já foi usada, mas a cola ainda serve."
 }
 
 def jogar_minotauro():
@@ -950,7 +978,7 @@ while True:
     # INTERCEPTADORES DE EVENTOS ESPECIAIS
     # ==========================================
     # O jogo checa se você pisou em um gatilho ANTES de tentar carregar o mapa
-    if sala_atual == "quarto 4":
+    if sala_atual == "sala de energia":
         sala_atual = jogar_minotauro()
         continue # Força o loop a recomeçar com a sala nova (vitória ou derrota)
         
@@ -959,7 +987,31 @@ while True:
         continue
         
     elif sala_atual == "morte":
-        print(f"\n{DOS_VERMELHO}[ SISTEMA CORROMPIDO: VOCÊ MORREU ]{RESET}")
+        limpar_tela()
+        caveira = (
+            "           .ed\"\"\"\" \"\"\"$$$$be.\n"
+            "         -\"           ^\"\"**$$$e.\n"
+            "       .\"                   '$$$c\n"
+            "      /                      \"4$$b\n"
+            "     d  3                      $$$$\n"
+            "     $  *                      .$$$$$$\n"
+            "    .$  ^c           $$$$$e$$$$$$$$.\n"
+            "    d$L  4.         4$$$$$$$$$$$$$$b\n"
+            "    $$$$b ^ceeeee.  4$$Ecl.F*$$$$$$$\n"
+            "    $$$$P d$$$$F $ $$$$$$$$$- $$$$$$\n"
+            "    3$$$F \"$$$$b   $\"$$$$$$$  $$$$*\"\n"
+            "     $$P\"  \"$$b   .$ $$$$$...e$$\n"
+            "      *c    ..    $$ 3$$$$$$$$$$eF\n"
+            "        %ce\"\"    $$$  $$$$$$$$$$*\n"
+            "         *$e.    *** d$$$$$\"L$$\n"
+            "          $$$      4J$$$$$% $$$\n"
+            "         $\"'$=e....$*$$**$cz$$\"\n"
+        )
+            
+        
+
+        print(f"{DOS_VERMELHO}{caveira}{RESET}")
+        print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
         break # Encerra o jogo
         
     elif sala_atual == "saida":
@@ -1043,7 +1095,7 @@ while True:
         time.sleep(2)
 
         digitar(f"{DOS_BRANCO}Você se levanta, vira as costas para as chamas, e caminha para a saída antes que o teto desabe.{RESET}", 0.05)
-        print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO: O AMOR QUEIMA MAIS FORTE QUE O ÓDIO ]{RESET}")
+        print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO]{RESET}")
         break
 
     elif sala_atual == "morte":
@@ -1071,8 +1123,6 @@ while True:
         
 
         print(f"{DOS_VERMELHO}{caveira}{RESET}")
-        print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
-        break # Encerra o jogo
         print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
         break # Encerra o jogo
         
@@ -1300,17 +1350,35 @@ while True:
             print("Mas o gosto de açúcar mofado embrulha seu estômago...")
             time.sleep(2)
 
-        # Abrir a Sala de Energia (Sala 03)
+        elif item == "remedio":
+            if hp < 3: # Limite máximo de vida
+                hp += 2
+                if hp > 3: hp = 3
+                inventario.remove("remedio")
+                print(f"💊 Você engole as pílulas secas. A dor diminui! (HP restaurado para {hp})")
+            else:
+                print("Você já está com a saúde máxima.")
+            time.sleep(2)
+            
+        elif item == "pizza mofada":
+            hp -= 1
+            turnos_enjoado = 4
+            inventario.remove("pizza mofada")
+            print(f"🤢 Você realmente comeu isso?! Uma dor de estômago terrível te ataca! Perdeu 1 HP. (HP: {hp})")
+            time.sleep(2)
+
+        # Abrir a Sala do gerador (Sala 03)
         elif item == "tesoura" and sala_atual == "corredor":
             print("Você usa a tesoura na fechadura emperrada da porta 03. O metal estala e a porta abre!")
-            mapa["corredor"]["03"] = "sala de energia" # Libera a sala!
+            mapa["corredor"]["03"] = "sala do gerador" # Libera a sala!
             inventario.remove("tesoura")
             inventario.append("tesoura quebrada")
             print("A tesoura quebrou com o esforço.")
             time.sleep(2)
+
             
         # Gatilho do Fogo (Final Ruim ou Verdadeiro)
-        elif item == "fios cortados" and sala_atual == "sala de energia":
+        elif item == "fios cortados" and sala_atual == "sala do gerador":
             print("\n🔥 Você joga os fios na fiação principal desencapada!")
             print("UM CURTO-CIRCUITO GIGANTE! O painel explode e as chamas começam a lamber as paredes!")
             incendio = True
@@ -1383,6 +1451,48 @@ while True:
         else:
             print(f"Você tenta usar '{item}' aqui, mas nada de útil acontece.")
             time.sleep(1.5)
+
+    # 🧩 PUZZLE 1: Usar Moeda no Fliperama
+    elif item == "moeda velha" and sala_atual == "sala 1":
+        print(f"{DOS_BRANCO}Você insere a ficha enferrujada na máquina de fliperama.{RESET}")
+        print("A tela pisca em azul. A máquina faz um barulho mecânico e cospe algo na gaveta de prêmios.")
+        inventario.remove("moeda velha")
+        inventario.append("chave da cozinha")
+        print(f"{DOS_VERDE}Você obteve: CHAVE DA COZINHA!{RESET}")
+        time.sleep(2)
+            
+    # 🧩 PUZZLE 2: Abrir a Cozinha
+    elif item == "chave da cozinha" and sala_atual == "02":
+        print("Você coloca a chave na fechadura da Sala 02. Ela gira com um 'clique' pesado.")
+        mapa["corredor"]["02"] = "cozinha privada" # O mapa agora aponta para a cozinha de verdade!
+        inventario.remove("chave da cozinha")
+        print(f"{DOS_VERDE}A porta da Cozinha Privada está destrancada.{RESET}")
+        time.sleep(2)
+
+    # --- LÓGICA DE ABRIR COFRE ---
+    elif comando == "abrir cofre" and sala_atual == "01":
+        print(f"{DOS_BRANCO}O cofre de ferro possui um teclado numérico antigo.{RESET}")
+        senha = input(f"{DOS_VERDE}Digite a senha de 4 dígitos: {RESET}").strip()
+        
+        if senha == "1985": 
+            print(f"{DOS_VERDE}CLICK! A pesada porta de metal se abre.{RESET}")
+            if "chave dos fundos" not in inventario:
+                print(f"{DOS_AMARELO}Você encontrou 'chave dos fundos' lá dentro!{RESET}")
+                inventario.append("chave dos fundos")
+            else:
+                print("O cofre está vazio. Apenas poeira.")
+        else:
+            print(f"{DOS_VERMELHO}BEEP! Senha incorreta. O painel pisca em vermelho.{RESET}")
+        time.sleep(2)
+        continue
+    
+    # 🧩 PUZZLE: Abrir a Sala dos Fundos
+    elif item == "chave dos fundos" and sala_atual == "sala de jantar":
+        print("Você insere a chave suja na porta de metal à esquerda. A tranca estala!")
+        mapa["sala de jantar"]["esquerda"] = "sala dos fundos" # O caminho foi aberto!
+        inventario.remove("chave dos fundos")
+        print(f"{DOS_VERDE}O caminho para a Sala dos Fundos foi destrancado. Um ar gelado sai de lá...{RESET}")
+        time.sleep(2)
 
 
         # --- LÓGICA DE ANALISAR ---
@@ -1525,6 +1635,121 @@ while True:
         limpar_tela()
         print(f"{DOS_VERDE}C:\> MEMÓRIA DE VÍDEO PURGADA COM SUCESSO.{RESET}")
         continue # Volta pro topo sem gastar turnos
+
+
+    # 10.5 COMANDOS SECRETOS (EASTER EGGS)
+    elif comando == "whoami":
+        digitar(f"{DOS_VERMELHO}Sou eu, Rogério.{RESET}", 0.08)
+        time.sleep(2)
+        continue
+        
+    elif comando == "format c:":
+        digitar(f"{DOS_VERMELHO}FORMATAÇÃO INICIADA... APAGANDO DIRETÓRIOS...{RESET}", 0.05)
+        time.sleep(1)
+        print(f"{DOS_VERMELHO}ERRO CRÍTICO 0x0000: PRESENÇA ULTERIOR PRESA NO DISCO.{RESET}")
+        time.sleep(2)
+        continue
+
+
+    # 12. LÓGICA DO FLIPERAMA (Mini-jogos ASCII)
+    elif comando.startswith("jogar ") and sala_atual == "sala de fliperamas":
+        jogo = comando.replace("jogar ", "").strip()
+        
+        # ==========================================
+        # MÁQUINA 1: A FOME DE JON
+        # ==========================================
+        if jogo == "fome de jon" or jogo == "jon":
+            limpar_tela()
+            arte_porco = r"""
+              * .    * .    * .
+            .    * .    * .    *
+              .      _//_      .    *
+            * / o o \      *
+              .   |  (T)  |   .    .
+               * \_____/   *
+            """
+            print(f"{DOS_BRANCO}{arte_porco}{RESET}")
+            digitar(f"{DOS_VERDE}--- A FOME DE JON ---{RESET}")
+            print(f"{DOS_BRANCO}Guie o Porco Jon pelos dutos para achar a 'comida'.{RESET}")
+            print("Comandos: [F] Frente | [E] Esquerda | [D] Direita\n")
+            
+            # O enigma do labirinto (Senha secreta para vencer: F, E, D, F)
+            caminho_certo = ["f", "e", "d", "f"]
+            passo = 0
+            
+            while passo < 4:
+                direcao = input(f"Passo {passo+1}/4 - Direção: ").strip().lower()
+                if direcao == caminho_certo[passo]:
+                    print(f"{DOS_AMARELO}Jon rasteja pelo metal escuro... O cheiro fica mais forte.{RESET}")
+                    passo += 1
+                else:
+                    print(f"\n{DOS_VERMELHO}CRUNCH! Jon caiu em um triturador de lixo! GAME OVER.{RESET}")
+                    break
+                    
+            if passo == 4:
+                digitar(f"\n{DOS_VERDE}Jon encontrou a 'comida'. A tela pinga um pixel vermelho.{RESET}")
+                digitar(f"{DOS_VERMELHO}MENSAGEM SECRETA: 'Eles não saíram pela porta da frente em 94.'{RESET}")
+            
+            turnos_luz -= 1
+            time.sleep(3)
+
+        # ==========================================
+        # MÁQUINA 2: CONSERTOS & SORRISOS
+        # ==========================================
+        elif jogo == "consertos":
+            if "moeda velha" not in inventario:
+                print("A máquina 'Consertos & Sorrisos' exige uma ficha (moeda velha) para iniciar.")
+                time.sleep(2)
+                continue
+                
+            inventario.remove("moeda velha")
+            limpar_tela()
+            arte_robo = " ( º º)"
+            print(f"{DOS_BRANCO}{arte_robo}{RESET}")
+            digitar(f"{DOS_VERDE}--- CONSERTOS & SORRISOS ---{RESET}")
+            print("Bem-vindo, Mecânico! Vamos montar nosso novo Festeiro!")
+            time.sleep(1)
+            
+            # FASE 1: Montagem (Escolhas visuais do jogador)
+            print(f"\n{DOS_AMARELO}[ FASE 1: SELEÇÃO DE PEÇAS ]{RESET}")
+            cabeca = input("Escolha a Cabeça (1- Urso | 2- Coelho): ")
+            tronco = input("Escolha o Tronco e Braços (1- Fino | 2- Robusto): ")
+            pernas = input("Escolha os Membros Inferiores (1- Aço | 2- Pelúcia): ")
+            
+            # FASE 2: Conexão (O Terror da Lore)
+            digitar(f"\n{DOS_AMARELO}[ FASE 2: CONECTANDO AS PARTES... ]{RESET}")
+            time.sleep(1.5)
+            
+            digitar(f"{DOS_BRANCO}Encaixando membros inferiores ao chassi principal...{RESET}", 0.04)
+            digitar(f"{DOS_VERMELHO}> AVISO DO SISTEMA: Obstrução na junta do joelho direito. {RESET}")
+            digitar(f"{DOS_VERMELHO}> ERRO: Detalhe anômalo - Fragmentos de osso humano bloqueando a mola. Forçando encaixe...{RESET}", 0.05)
+            time.sleep(1.5)
+            
+            digitar(f"\n{DOS_BRANCO}Soldando os braços e o tronco central...{RESET}", 0.04)
+            digitar(f"{DOS_VERMELHO}> AVISO DO SISTEMA: Vazamento de fluido espesso e quente detectado no peito.{RESET}")
+            digitar(f"{DOS_VERMELHO}> ERRO: Sensor de odores indica tecido necrosado e carne em decomposição dentro da fantasia. Ignorando...{RESET}", 0.05)
+            time.sleep(1.5)
+            
+            digitar(f"\n{DOS_BRANCO}Conectando a cabeça ao pescoço eletrônico...{RESET}", 0.04)
+            digitar(f"{DOS_VERMELHO}> AVISO CRÍTICO: Cordas vocais humanas bloqueando o servo-motor da mandíbula.{RESET}")
+            digitar(f"{DOS_VERMELHO}> O animatrônico está chorando?{RESET}", 0.08)
+            time.sleep(2)
+            
+            # Recompensa
+            print(f"\n{DOS_VERDE}CONSERTO CONCLUÍDO! O ANIMATRÔNICO SORRI PARA VOCÊ!{RESET}")
+            time.sleep(1)
+            
+            if "chave da cozinha" not in inventario:
+                print(f"{DOS_BRANCO}A gaveta de prêmios se abre com um barulho metálico.{RESET}")
+                inventario.append("chave da cozinha")
+                print(f"{DOS_VERDE}🎒 Você obteve: CHAVE DA COZINHA!{RESET}")
+            
+            turnos_luz -= 1
+            time.sleep(3)
+            
+        else:
+            print(f"Não existe um fliperama chamado '{jogo}'. As máquinas ligadas são: 'jon' e 'consertos'.")
+            time.sleep(2)
 
        
 
