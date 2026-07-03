@@ -577,7 +577,12 @@ class MinigameSeguranca:
                     self.caroline_pos = 0; self.caroline_caminho = random.choice(["porta", "tubulacao"])
                     print("\n💥 Um estrondo na porta. A Caroline recuou.")
 
-            if (self.rick_pos == 4 and not self.porta_fechada) or (self.caroline_caminho == "porta" and self.caroline_pos == 6 and not self.porta_fechada) or (self.jon_pos == 5) or (self.caroline_caminho == "tubulacao" and self.caroline_pos == 6):
+            if (
+                (self.rick_pos == 4 and not self.porta_fechada) or 
+                (self.caroline_caminho == "porta" and self.caroline_pos == 6 and not self.porta_fechada) or 
+                (self.jon_pos == 5) or 
+                (self.caroline_caminho == "tubulacao" and self.caroline_pos == 6)
+            ):
                 print("\n💀 JUMPSCARE! Um animatrônico te pegou!")
                 pausar(2)
                 return "morte"
@@ -1200,154 +1205,160 @@ def menu_inicial():
 # ==========================================
 # MOTOR PRINCIPAL
 # ==========================================
-menu_inicial()
-pausar(1)
-print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
-print(f"{DOS_BRANCO}Você entra no restaurante. Sua lanterna velha dá três piscadas fracas...{RESET}")
-pausar(2)
-print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ EM ATÉ 3 TURNOS.{RESET}\n")
-pausar(2)
 
-while True:
-    try:
-        print("\n" + "="*50)
+if __name__ == "__main__":
+    
+    menu_inicial()
+    pausar(1)
+    print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
+    print(f"{DOS_BRANCO}Você entra no restaurante. Sua lanterna velha dá três piscadas fracas...{RESET}")
+    pausar(2)
+    print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ EM ATÉ 3 TURNOS.{RESET}\n")
+    pausar(2)
 
-        if jogo.sala_atual == "sala de energia" and not jogo.fios_cortados_inventario:
-            if not isinstance(jogo.minigame_atual, MinigameMinotauro):
-                jogo.minigame_atual = MinigameMinotauro(jogo)
+    while True:
+        try:
+            print("\n" + "="*50)
+
+            if jogo.sala_atual == "sala de energia" and not jogo.fios_cortados_inventario:
+                if not isinstance(jogo.minigame_atual, MinigameMinotauro):
+                    jogo.minigame_atual = MinigameMinotauro(jogo)
+                    
+            elif jogo.sala_atual == "cadeira" and not jogo.noite_vencida:
+                if not isinstance(jogo.minigame_atual, MinigameSeguranca):
+                    jogo.minigame_atual = MinigameSeguranca(jogo)
+
+            if jogo.minigame_atual:
+                jogo.minigame_atual.imprimir_status()
+                comando = normalizar(input(f"\n{DOS_VERDE}Ação: {RESET}"))
+                resultado = jogo.minigame_atual.processar_turno(comando, jogo)
                 
-        elif jogo.sala_atual == "cadeira" and not jogo.noite_vencida:
-            if not isinstance(jogo.minigame_atual, MinigameSeguranca):
-                jogo.minigame_atual = MinigameSeguranca(jogo)
+                if resultado == "morte":
+                    jogo.minigame_atual = None; jogo.sala_atual = "morte"
+                elif resultado == "vitoria_minotauro":
+                    jogo.minigame_atual = None
+                elif resultado == "vitoria_seguranca":
+                    jogo.minigame_atual = None; jogo.sala_atual = "01"
+                continue 
 
-        if jogo.minigame_atual:
-            jogo.minigame_atual.imprimir_status()
-            comando = normalizar(input(f"\n{DOS_VERDE}Ação: {RESET}"))
-            resultado = jogo.minigame_atual.processar_turno(comando, jogo)
+            if jogo.sala_atual == "morte":
+                limpar_tela()
+                caveira = r'''
+                .ed"""" """$$$$be.
+                -"           ^""**$$$e.
+            ."                   '$$$c
+            /                      "4$$b
+            d  3                      $$$$
+            $  * .$$$$$$
+            .$  ^c           $$$$$e$$$$$$$$.
+            d$L  4.         4$$$$$$$$$$$$$$b
+            $$$$b ^ceeeee.  4$$Ecl.F*$$$$$$$
+            $$$$P d$$$$F $ $$$$$$$$$- $$$$$$
+            3$$$F "$$$$b   $"$$$$$$$  $$$$*"
+            $$P"  "$$b   .$ $$$$$...e$$
+            *c    ..    $$ 3$$$$$$$$$$eF
+                %ce""    $$$  $$$$$$$$$$*
+                *$e.    *** d$$$$$"L$$
+                $$$      4J$$$$$% $$$
+                $"'$=e....$*$$**$cz$$"
+                '''
+                print(f"{DOS_VERMELHO}{caveira}{RESET}")
+                print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
+                break
+                
+            elif jogo.sala_atual == "saida":
+                print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE: A IGNORÂNCIA É UMA BÊNÇÃO ]{RESET}")
+                break
+                
+            elif jogo.sala_atual == "cama":
+                print(f"\n{DOS_BRANCO}[ FINAL BONS SONHOS ]{RESET}")
+                break
+
+            elif jogo.sala_atual == "final_bom":
+                limpar_tela()
+                digitar("Voce acende o isqueiro e ilumina o local. A luz do fogo traz calma...", 0.04, DOS_VERDE)
+                pausar(1)
+                digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
+                pausar(1)
+                digitar("- 'Ainda estou aqui...'", 0.09, DOS_VERMELHO)
+                pausar(1)
+                digitar("- Amor? É voce? Mesmo???", 0.05, DOS_AMARELO)
+                pausar(1)
+                digitar("- 'Eu espero que ainda seja eu...'", 0.09, DOS_VERMELHO)
+                pausar(1)
+                digitar("- Caroline... desista desse corpo que não lhe pertence. Siga o rumo das estrelas.", 0.05, DOS_AMARELO)
+                pausar(2)
+                digitar("- ... *Caroline abraça Rogério*", 0.09, DOS_VERMELHO)
+                pausar(2)
+                digitar("- 'Vamos nos encontrar no céu, meu bem.'", 0.09, DOS_VERMELHO)
+                pausar(3)
+                limpar_tela()
+                print(f"\n{DOS_BRANCO}[ FINAL BOM ]{RESET}")
+                break
+
+            elif jogo.sala_atual == "hall de entrada" and jogo.incendio and jogo.noite_vencida and jogo.fios_cortados_inventario:
+                limpar_tela()
+                digitar("Voce se aproxima do animatronico... dela. E encaixa os fios na sua fiação...", 0.05, DOS_BRANCO)
+                digitar("Voce acende o isqueiro. Os olhos de plastico parecem te encarar.", 0.05, DOS_BRANCO)
+                digitar("Os olhos piscam em vermelho, tentando fazer algo... e apagam.\n", 0.05, DOS_BRANCO)
+                pausar(1)
+                digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
+                pausar(1)
+                digitar("- '... voce fez dar certo'", 0.08, DOS_VERMELHO)
+                pausar(1)
+                digitar("- Caro... Caroline? É você?", 0.05, DOS_AMARELO)
+                pausar(1)
+                digitar("*(Você abraça a carcaça de metal)*", 0.04, DOS_BRANCO)
+                pausar(1)
+                digitar("- Meu corpo ficou em silencio, não sinto mais raiva.", 0.07, DOS_VERDE)
+                pausar(1)
+                digitar("*(O fogo se alastra pelo restaurante, a fumaça chega no hall)*", 0.04, DOS_BRANCO)
+                pausar(1)
+                digitar("- Me sinta pela ultima vez.", 0.07, DOS_VERDE)
+                digitar("*(Voce sente mãos invisíveis em seus ombros, um alivio inunda sua mente)*", 0.04, DOS_BRANCO)
+                pausar(1)
+                digitar("- Obrigada por me deixar assim pela ultima vez.", 0.07, DOS_VERDE)
+                pausar(1)
+                digitar("- Eu te amo.", 0.06, DOS_AMARELO)
+                pausar(2)
+                digitar("*(O animatronico cai no chão, o fogo cobre o metal e o plástico)*", 0.05, DOS_BRANCO)
+                pausar(2)
+                digitar("\n[DISPOSITIVO]: NENHUMA PRESENÇA DETECTADA.", 0.05, DOS_VERDE)
+                pausar(2)
+                digitar("Você se levanta e caminha para a saída antes que o teto desabe.", 0.05, DOS_BRANCO)
+                print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO: CINZAS DO PASSADO ]{RESET}")
+                break
+
+            sala = jogo.mapa[jogo.sala_atual]
+            print(f"📍 VOCÊ ESTÁ EM: {jogo.sala_atual.upper()}")
+            print(f"👁️  Visão: {sala['descrição']}")
+
+            if len(sala.get("itens", [])) > 0:
+                if jogo.turnos_luz > 0:
+                    print(f"📦 Itens no chão: {', '.join(sala['itens'])}")
+                else:
+                    print("📦 Deve ter algo no chão, mas está escuro demais para ver o quê.")
+
+            print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
+            print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
             
-            if resultado == "morte":
-                jogo.minigame_atual = None; jogo.sala_atual = "morte"
-            elif resultado == "vitoria_minotauro":
-                jogo.minigame_atual = None
-            elif resultado == "vitoria_seguranca":
-                jogo.minigame_atual = None; jogo.sala_atual = "01"
-            continue 
+            comando = normalizar(input(f"{DOS_VERDE}C:\\> {RESET}"))
 
-        if jogo.sala_atual == "morte":
-            limpar_tela()
-            caveira = r'''
-               .ed"""" """$$$$be.
-             -"           ^""**$$$e.
-           ."                   '$$$c
-          /                      "4$$b
-         d  3                      $$$$
-         $  * .$$$$$$
-        .$  ^c           $$$$$e$$$$$$$$.
-        d$L  4.         4$$$$$$$$$$$$$$b
-        $$$$b ^ceeeee.  4$$Ecl.F*$$$$$$$
-        $$$$P d$$$$F $ $$$$$$$$$- $$$$$$
-        3$$$F "$$$$b   $"$$$$$$$  $$$$*"
-         $$P"  "$$b   .$ $$$$$...e$$
-          *c    ..    $$ 3$$$$$$$$$$eF
-            %ce""    $$$  $$$$$$$$$$*
-             *$e.    *** d$$$$$"L$$
-              $$$      4J$$$$$% $$$
-             $"'$=e....$*$$**$cz$$"
-            '''
-            print(f"{DOS_VERMELHO}{caveira}{RESET}")
-            print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
-            break
-            
-        elif jogo.sala_atual == "saida":
-            print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE: A IGNORÂNCIA É UMA BÊNÇÃO ]{RESET}")
-            break
-            
-        elif jogo.sala_atual == "cama":
-            print(f"\n{DOS_BRANCO}[ FINAL BONS SONHOS ]{RESET}")
-            break
+            gastou_turno = processar_comando(comando, jogo, jogo.mapa)
 
-        elif jogo.sala_atual == "final_bom":
-            limpar_tela()
-            digitar("Voce acende o isqueiro e ilumina o local. A luz do fogo traz calma...", 0.04, DOS_VERDE)
-            pausar(1)
-            digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
-            pausar(1)
-            digitar("- 'Ainda estou aqui...'", 0.09, DOS_VERMELHO)
-            pausar(1)
-            digitar("- Amor? É voce? Mesmo???", 0.05, DOS_AMARELO)
-            pausar(1)
-            digitar("- 'Eu espero que ainda seja eu...'", 0.09, DOS_VERMELHO)
-            pausar(1)
-            digitar("- Caroline... desista desse corpo que não lhe pertence. Siga o rumo das estrelas.", 0.05, DOS_AMARELO)
-            pausar(2)
-            digitar("- ... *Caroline abraça Rogério*", 0.09, DOS_VERMELHO)
-            pausar(2)
-            digitar("- 'Vamos nos encontrar no céu, meu bem.'", 0.09, DOS_VERMELHO)
-            pausar(3)
-            limpar_tela()
-            print(f"\n{DOS_BRANCO}[ FINAL BOM ]{RESET}")
-            break
+            if gastou_turno:
+                atualizar_eventos_de_tempo(jogo)
 
-        elif jogo.sala_atual == "hall de entrada" and jogo.incendio and jogo.noite_vencida and jogo.fios_cortados_inventario:
-            limpar_tela()
-            digitar("Voce se aproxima do animatronico... dela. E encaixa os fios na sua fiação...", 0.05, DOS_BRANCO)
-            digitar("Voce acende o isqueiro. Os olhos de plastico parecem te encarar.", 0.05, DOS_BRANCO)
-            digitar("Os olhos piscam em vermelho, tentando fazer algo... e apagam.\n", 0.05, DOS_BRANCO)
-            pausar(1)
-            digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
-            pausar(1)
-            digitar("- '... voce fez dar certo'", 0.08, DOS_VERMELHO)
-            pausar(1)
-            digitar("- Caro... Caroline? É você?", 0.05, DOS_AMARELO)
-            pausar(1)
-            digitar("*(Você abraça a carcaça de metal)*", 0.04, DOS_BRANCO)
-            pausar(1)
-            digitar("- Meu corpo ficou em silencio, não sinto mais raiva.", 0.07, DOS_VERDE)
-            pausar(1)
-            digitar("*(O fogo se alastra pelo restaurante, a fumaça chega no hall)*", 0.04, DOS_BRANCO)
-            pausar(1)
-            digitar("- Me sinta pela ultima vez.", 0.07, DOS_VERDE)
-            digitar("*(Voce sente mãos invisíveis em seus ombros, um alivio inunda sua mente)*", 0.04, DOS_BRANCO)
-            pausar(1)
-            digitar("- Obrigada por me deixar assim pela ultima vez.", 0.07, DOS_VERDE)
-            pausar(1)
-            digitar("- Eu te amo.", 0.06, DOS_AMARELO)
-            pausar(2)
-            digitar("*(O animatronico cai no chão, o fogo cobre o metal e o plástico)*", 0.05, DOS_BRANCO)
-            pausar(2)
-            digitar("\n[DISPOSITIVO]: NENHUMA PRESENÇA DETECTADA.", 0.05, DOS_VERDE)
-            pausar(2)
-            digitar("Você se levanta e caminha para a saída antes que o teto desabe.", 0.05, DOS_BRANCO)
-            print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO: CINZAS DO PASSADO ]{RESET}")
-            break
-
-        sala = jogo.mapa[jogo.sala_atual]
-        print(f"📍 VOCÊ ESTÁ EM: {jogo.sala_atual.upper()}")
-        print(f"👁️  Visão: {sala['descrição']}")
-
-        if len(sala.get("itens", [])) > 0:
-            if jogo.turnos_luz > 0:
-                print(f"📦 Itens no chão: {', '.join(sala['itens'])}")
+        except Exception as e:
+            if DEBUG_MODE:
+                raise e
             else:
-                print("📦 Deve ter algo no chão, mas está escuro demais para ver o quê.")
-
-        print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
-        print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
-        
-        comando = normalizar(input(f"{DOS_VERDE}C:\\> {RESET}"))
-
-        gastou_turno = processar_comando(comando, jogo, jogo.mapa)
-
-        if gastou_turno:
-            atualizar_eventos_de_tempo(jogo)
-
-    except Exception as e:
-        print(f"\n{DOS_VERMELHO}[ FALHA GERAL DE SISTEMA - TELA AZUL ]{RESET}")
-        print(f"{DOS_BRANCO}O sistema Villas Boas encontrou uma anomalia na realidade.{RESET}")
-        print(f"{DOS_VERMELHO}Código do Erro: {e}{RESET}")
-        print(f"{DOS_BRANCO}Ignorando anomalia e reiniciando a simulação do turno...{RESET}")
-        time.sleep(4)
-        continue
+                print(f"\n{DOS_VERMELHO}[ FALHA GERAL DE SISTEMA - TELA AZUL ]{RESET}")
+                print(f"{DOS_BRANCO}O sistema Villas Boas encontrou uma anomalia na realidade.{RESET}")
+                print(f"{DOS_VERMELHO}Código do Erro: {e}{RESET}")
+                print(f"{DOS_BRANCO}Ignorando anomalia e reiniciando a simulação do turno...{RESET}")
+                time.sleep(4)
+                continue
 
 print("\n" + "="*50)
 input(f"{DOS_BRANCO}[PRESSIONE ENTER PARA FECHAR]{RESET}")
