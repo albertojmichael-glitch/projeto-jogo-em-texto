@@ -1,44 +1,55 @@
 import time
-import math
 import random
 import sys
 import os
 import unicodedata
 import copy
+import json # Adicionado para o sistema de Save/Load
 
 if sys.platform == "win32":
-    os.system("color") # Força o CMD/Powershell do Windows a ativar cores ANSI
+    os.system("color") 
 
 # ==========================================
-# CONFIGURAÇÕES DE CORES (Estilo MS-DOS)
+# CONFIGURAÇÕES DO SISTEMA E CONSTANTES
 # ==========================================
-DOS_VERDE = '\033[92m'    # Verde de monitor de fósforo antigo
-DOS_BRANCO = '\033[97m'   # Branco de alto contraste
-DOS_AMARELO = '\033[93m'  # Destaque de itens e lanterna
-DOS_VERMELHO = '\033[91m' # Alertas críticos, sangue e perigo
-RESET = '\033[0m'         # Reseta a formatação do terminal
+DEBUG_MODE = False # Mude para True para pular delays de texto durante seus testes!
+COFRE_SENHA = "1994"
+MAX_INVENTARIO = 3
+
+DOS_VERDE = '\033[92m'    
+DOS_BRANCO = '\033[97m'   
+DOS_AMARELO = '\033[93m'  
+DOS_VERMELHO = '\033[91m' 
+RESET = '\033[0m'         
 
 # ==========================================
-# FUNÇÕES UTILIÁRIAS DE SISTEMA
+# FUNÇÕES UTILIÁRIAS
 # ==========================================
 def normalizar(texto):
-    """Remove acentos e padroniza o texto do jogador para evitar quebras."""
     texto_sem_acento = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('utf-8')
     return texto_sem_acento.strip().lower()
 
 def limpar_tela():
-    """Empurra o texto antigo para simular limpeza de tela em ambientes web/locais."""
     print("\n" * 50)
 
+def pausar(segundos):
+    """Substitui o time.sleep para respeitar o DEBUG_MODE"""
+    if not DEBUG_MODE:
+        time.sleep(segundos)
+
 def digitar(texto, tempo_base=0.03, cor=""):
-    """Imprime texto caractere por caractere com alteração de velocidade por pânico."""
+    """Imprime texto com delay, pulando se DEBUG_MODE for True."""
+    texto_final = f"{cor}{texto}{RESET}" if cor else texto
+    
+    if DEBUG_MODE:
+        print(texto_final)
+        return
+        
     tempo_real = tempo_base
     if jogo.hp <= 1:
-        tempo_real = 0.005  # Pânico absoluto (muito rápido)
+        tempo_real = 0.005  
     elif jogo.turnos_no_escuro >= 3:
-        tempo_real = 0.01   # Medo e ansiedade (rápido)
-        
-    texto_final = f"{cor}{texto}{RESET}" if cor else texto
+        tempo_real = 0.01   
         
     for letra in texto_final:
         sys.stdout.write(letra)
@@ -47,7 +58,7 @@ def digitar(texto, tempo_base=0.03, cor=""):
     print()
 
 # ==========================================
-# MAPA TEMPLATE DO RESTAURANTE (MOLDE)
+# MAPA TEMPLATE E LORE
 # ==========================================
 MAPA_ORIGINAL = {
     "entrada": {
@@ -127,7 +138,7 @@ MAPA_ORIGINAL = {
         "cadeira": "cadeira",
         "atrás": "corredor",
         "inspecionaveis": {
-            "papeis": "Tem muitos papeis encima da segunda mesa, emails e memorandos que deveriam estar pendurados em algum lugar. Não da pra ler muita coisa, mas algo chama atenção '1994..' são de 2007",
+            "papeis": "Tem muitos papeis encima da segunda mesa, emails e memorandos... algo chama atenção '1994..' são de 2007",
         },
         "esquerda": "nada",
         "direita": "nada",
@@ -151,7 +162,7 @@ MAPA_ORIGINAL = {
         "itens": []
     },
     "04": {
-        "descrição": "voce força a porta e consegue entrar, está muito escuro e você enxerga apenas a tubulação da parede funcionando",
+        "descrição": "voce força a porta e consegue entrar, está escuro e você enxerga apenas a tubulação funcionando",
         "atrás": "corredor",
         "frente": "cama", 
         "esquerda": "parede",
@@ -159,12 +170,12 @@ MAPA_ORIGINAL = {
         "itens": ["pano", "fosforo", "garrafa vazia"]
     },
     "sala do gerador": {
-        "descrição": "A antiga sala de energia (porta 03). O gerador principal está aqui. Há fios soltos e um painel exposto. Cheira a borracha queimada.",
+        "descrição": "A antiga sala de energia (porta 03). O gerador principal está aqui. Há fios soltos e um painel exposto.",
         "atrás": "corredor",
         "itens": []
     },
     "cozinha privada": {
-        "descrição": "Uma cozinha industrial imunda. O cheiro do mofo é insuportável. As panelas estão enferrujadas.",
+        "descrição": "Uma cozinha industrial imunda. O cheiro do mofo é insuportável.",
         "atrás": "corredor",
         "itens": ["fita isolante"]
     },
@@ -186,12 +197,12 @@ MAPA_ORIGINAL = {
         "itens": ["recorte 2"]
     },
     "sala de fliperamas": {
-        "descrição": "O chão tem carpete neon sujo. Há três máquinas funcionando fracamente: 'fome de jon', 'consertos' e 'julgamento'. Digite 'jogar [nome do jogo]'.",
+        "descrição": "O chão tem carpete neon sujo. Há três máquinas funcionando: 'fome de jon', 'consertos' e 'julgamento'. Digite 'jogar [nome]'.",
         "direita": "sala 1",
         "itens": []
     },
     "sala 2": {
-        "descrição": "voce da de cara com um animatronico enorme no escuro! Os olhos dele brilham e um zumbido cresce. Você tem poucos segundos para recuar!",
+        "descrição": "voce da de cara com um animatronico enorme no escuro! O zumbido cresce. Você tem poucos segundos para recuar!",
         "esquerda": "sala 1",
         "atrás": "duas salas de festas",
         "frente": "morte", 
@@ -205,7 +216,7 @@ MAPA_ORIGINAL = {
         "itens": []
     },
     "sala dos fundos": {
-        "descrição": "Um corredor denso e escuro. Há 5 portas com placas: 'pelucias', 'equipamento', 'animatronicos', 'mercadorias' e, no fundo, 'energia'. À esquerda fica a 'cozinha principal'.",
+        "descrição": "Um corredor denso e escuro. Há 5 portas com placas: 'pelucias', 'equipamento', 'animatronicos', 'mercadorias' e 'energia'.",
         "atrás": "sala de jantar",
         "esquerda": "cozinha principal",
         "pelucias": "sala de pelucias",
@@ -216,12 +227,12 @@ MAPA_ORIGINAL = {
         "itens": []
     },
     "cozinha principal": {
-        "descrição": "A antiga cozinha que preparava comida para todos. Panelas enferrujadas e pratos quebrados pelo chão. Tem uma caixa de primeiros socorros aberta.",
+        "descrição": "A antiga cozinha que preparava comida. Tem uma caixa de primeiros socorros aberta.",
         "direita": "sala dos fundos",
         "itens": ["remedio", "pizza mofada"]
     },
     "sala de pelucias": {
-        "descrição": "Uma sala cheia de pelúcias apodrecidas. Os olhos de plástico parecem te seguir. Melhor não ficar aqui.",
+        "descrição": "Uma sala cheia de pelúcias apodrecidas. Melhor não ficar aqui.",
         "atrás": "sala dos fundos",
         "itens": []
     },
@@ -231,12 +242,12 @@ MAPA_ORIGINAL = {
         "itens": ["bateria nova"]
     },
     "sala de animatronicos": {
-        "descrição": "Você abre a porta e vê várias carcaças de metal desmontadas. Uma delas vira a cabeça devagar para você! Você bate a porta na mesma hora.",
+        "descrição": "Várias carcaças de metal desmontadas. Uma delas vira a cabeça devagar para você! Você bate a porta.",
         "atrás": "sala dos fundos",
         "itens": []
     },
     "sala de mercadorias": {
-        "descrição": "Caixas de papelão mofadas com camisetas do restaurante que nunca foram vendidas.",
+        "descrição": "Caixas de papelão mofadas com camisetas do restaurante.",
         "atrás": "sala dos fundos",
         "itens": []
     },
@@ -248,55 +259,47 @@ MAPA_ORIGINAL = {
     }
 }
 
-# ==========================================
-# ENCICLOPÉDIA DE ITENS (LORE)
-# ==========================================
 descricoes_itens = {
     "tabua pequena de madeira": "Você passa a mão pela tábua, ela está velha, úmida, e cheia de farpas.",
     "tocha": "Você olha para a tábua com um papel procurando algo, mas não há nada.",
-    "tocha acesa": "Você olha para a tocha acesa, parece que não vai durar muito pela umidade, mas você consegue enxergar mais.",
-    "papel": "O papel tem letras borradas de sangue e um número circulado: 'O ano que tudo mudou... 1983'. Deve servir para alguma coisa.",
+    "tocha acesa": "Você olha para a tocha acesa, parece que não vai durar muito pela umidade.",
+    "papel": "O papel tem letras borradas de sangue: 'O ano que tudo mudou... 1983'.",
     "papel aceso": "Você enxerga muito mais pela luz laranja do fogo, mas está queimando rápido.",
     "tesoura": "Tesoura escolar sem ponta, de aço inox, deve servir para arrombar alguma porta.",
     "tesoura quebrada": "Tesoura escolar quebrada, o aço entortou e perdeu o corte, está inútil.",
     "pelucias": "Pelúcias velhas e empoeiradas. Os olhos de plástico parecem te julgar na escuridão.",
-    "doce": "Doce de laranja velho, grudado no plástico. Ainda é comestível... eu acho.",
-    "confete": "Pedaços de papel colorido que perderam a cor. Têm cheiro de mofo e festa triste.",
-    "isqueiro": "Um isqueiro formidável dos anos 80, de aço com gravuras no metal, ainda está funcional.",
+    "doce": "Doce de laranja velho, grudado no plástico.",
+    "confete": "Pedaços de papel colorido que perderam a cor. Têm cheiro de mofo.",
+    "isqueiro": "Um isqueiro formidável dos anos 80, ainda está funcional.",
     "pano": "Pano velho cheio de pelo e sujeira, muito úmido.",
-    "pano aceso": "O pano queima com uma chama irregular, iluminando as sombras e cheirando a poeira queimada.",
-    "fosforo": "Uma caixinha de fósforos quase vazia. A madeira está um pouco úmida, mas o atrito ainda deve funcionar.",
-    "garrafa vazia": "Uma garrafa de vinho suja, se cair no chão vai fazer um barulho alto o suficiente para atrair... algo.",
+    "pano aceso": "O pano queima com uma chama irregular, cheirando a poeira queimada.",
+    "fosforo": "Uma caixinha de fósforos quase vazia.",
+    "garrafa vazia": "Uma garrafa de vinho suja.",
     "pedra": "Uma pedra comum e redonda. Pesada, fria e completamente inútil.",
-    "moeda velha": "Uma ficha de fliperama enferrujada de 1980 da Villas Boas.",
+    "moeda velha": "Uma ficha de fliperama enferrujada de 1980.",
     "chave da cozinha": "Uma chave prateada com um chaveiro sujo de graxa.",
     "remedio": "Um frasco de analgésicos vencidos. Pode ajudar com a dor.",
-    "pizza mofada": "Um pedaço de pizza de 1994. Tem uma cor verde fluorescente. Eu não comeria isso.",
-    "bateria nova": "Uma bateria industrial pesada. Vai recarregar a sua lanterna no máximo! (10 turnos)",
-    "recorte 1": "Pedaço de jornal de 1994: '...o cliente João Barros Silva Ferreira, 31 anos, desapareceu...' ",
-    "recorte 2": "Parte central da notícia: '...a garçonete Ângela Silva Andrade, de 24 anos, vista pela última vez...' ",
-    "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis Gomes, de 46 anos, afundou com o restaurante.'",
-    "jornal completo": "Os três recortes unidos. Conta a história completa das três vítimas do IPD de 1994.",
-    "fita isolante": "Um rolo de fita preta grossa. Metade já foi usada, mas a cola ainda serve."
+    "pizza mofada": "Um pedaço de pizza de 1994. Tem uma cor verde fluorescente.",
+    "bateria nova": "Uma bateria industrial pesada. Vai recarregar a lanterna no máximo!",
+    "recorte 1": "Pedaço de jornal de 1994: '...o cliente João Barros, desapareceu...' ",
+    "recorte 2": "Parte central da notícia: '...a garçonete Ângela Silva vista pela última vez...' ",
+    "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis, afundou com o restaurante.'",
+    "jornal completo": "Os três recortes unidos. Conta a história das três vítimas de 1994.",
+    "fita isolante": "Um rolo de fita preta grossa. A cola ainda serve."
 }
 
 # ==========================================
-# GESTOR DE ESTADO DO JOGO (GAME STATE CLASS)
+# ESTADO GERAL DO JOGO E SAVE/LOAD
 # ==========================================
 class GameState:
     def __init__(self):
-        # Jogador e Recursos
         self.hp = 3
         self.inventario = []
         self.turnos_luz = 3
         self.turnos_no_escuro = 0
         self.turnos_enjoado = 0
         self.sala_atual = "entrada"
-        
-        # Sistema do Perseguidor
         self.turnos_mesma_sala = 0
-        
-        # Dificuldade e Noite (Padrão Normal)
         self.dificuldade_escolhida = "NORMAL"
         self.chance_sprint_minotauro = 15
         self.turnos_perseguidor_aviso = 3
@@ -304,23 +307,54 @@ class GameState:
         self.energia_min_noite = 90
         self.energia_max_noite = 100
         self.furia_noite = 1
-        
-        # História e Finais
         self.fios_cortados_inventario = False
         self.noite_vencida = False
         self.incendio = False
         self.turnos_fuga = 5
         self.isqueiro_usos = 3 
-        
-        # Clonagem segura do Mapa de Base
         self.mapa = copy.deepcopy(MAPA_ORIGINAL)
         self.minigame_atual = None
 
-# Instanciação global da classe de controle
 jogo = GameState()
 
+def salvar_jogo(estado):
+    if estado.minigame_atual is not None:
+        print(f"{DOS_AMARELO}Você não pode salvar o jogo durante um evento crítico!{RESET}")
+        pausar(2)
+        return False
+    
+    try:
+        dados = copy.deepcopy(estado.__dict__)
+        dados['minigame_atual'] = None 
+        with open("save_villasboas.json", "w", encoding="utf-8") as f:
+            json.dump(dados, f, ensure_ascii=False, indent=4)
+        print(f"{DOS_VERDE}💾 Jogo salvo com sucesso!{RESET}")
+        pausar(1.5)
+        return True
+    except Exception as e:
+        print(f"{DOS_VERMELHO}Erro ao salvar o jogo: {e}{RESET}")
+        return False
+
+def carregar_jogo(estado):
+    if not os.path.exists("save_villasboas.json"):
+        print(f"{DOS_AMARELO}Nenhum arquivo de save encontrado.{RESET}")
+        pausar(1.5)
+        return False
+        
+    try:
+        with open("save_villasboas.json", "r", encoding="utf-8") as f:
+            dados = json.load(f)
+        for key, value in dados.items():
+            setattr(estado, key, value)
+        print(f"{DOS_VERDE}💾 Jogo carregado com sucesso! Bem-vindo de volta.{RESET}")
+        pausar(2)
+        return True
+    except Exception as e:
+        print(f"{DOS_VERMELHO}Erro ao carregar o jogo: O arquivo pode estar corrompido.{RESET}")
+        return False
+
 # ==========================================
-# CLASSES DE MINIGAMES (MÁQUINAS DE ESTADO)
+# CLASSES DE MINIGAMES
 # ==========================================
 class MinigameMinotauro:
     def __init__(self, jogo):
@@ -332,10 +366,10 @@ class MinigameMinotauro:
         
         print("\n" + "="*50)
         print("Você entra na Sala de Energia... e a porta bate com força atrás de você!")
-        time.sleep(2)
+        pausar(2)
         print("Você escuta uma respiração pesada. Um labirinto invisível se forma.")
         print("O MINOTAURO ESTÁ AQUI.")
-        time.sleep(2)
+        pausar(2)
 
     def imprimir_status(self):
         print("\n" + "-"*30)
@@ -381,7 +415,7 @@ class MinigameMinotauro:
                     print("✂️ Você corta os fios principais! Faíscas voam e o sistema desliga.")
                     self.fios_cortados = True
                     jogo.fios_cortados_inventario = True
-                    time.sleep(2)
+                    pausar(2)
                     return "vitoria_minotauro"
                 else: print("Você precisa de uma ferramenta!")
                 turno_gasto = True
@@ -390,7 +424,7 @@ class MinigameMinotauro:
 
         if not self.fios_cortados and self.px == self.mx and self.py == self.my:
             print("\n💀 Você esbarrou direto na carcaça de metal do Minotauro!")
-            time.sleep(2)
+            pausar(2)
             return "morte"
 
         if turno_gasto and not self.fios_cortados:
@@ -403,11 +437,10 @@ class MinigameMinotauro:
                 
             if self.px == self.mx and self.py == self.my:
                 print("\n💀 O Minotauro te encontrou no escuro. Mãos frias de metal te rasgam...")
-                time.sleep(2)
+                pausar(2)
                 return "morte"
                 
         return "continuar"
-
 
 class MinigameSeguranca:
     def __init__(self, jogo):
@@ -428,7 +461,7 @@ class MinigameSeguranca:
         
         print("\n" + "="*50)
         print("Você senta na cadeira da sala de segurança.")
-        time.sleep(1)
+        pausar(1)
 
     def imprimir_status(self):
         limpar_tela()
@@ -531,12 +564,12 @@ class MinigameSeguranca:
             print("Você deixa o tempo passar..."); turno_passou = True; self.turno += 1; self.alberto_troll = False
         else: print("Comando inválido.")
         
-        time.sleep(1)
+        pausar(1)
 
         if turno_passou:
             if self.energia <= 0 and self.apagao == 0:
                 print("\n🔋 [ ENERGIA ESGOTADA ] Tudo fica escuro. A porta abre sozinha...")
-                self.porta_fechada = False; self.apagao = 1; time.sleep(2)
+                self.porta_fechada = False; self.apagao = 1; pausar(2)
 
             if self.porta_fechada:
                 if self.rick_pos == 4: self.rick_pos = 0; print("\n💥 Algo soca a porta!")
@@ -546,7 +579,7 @@ class MinigameSeguranca:
 
             if (self.rick_pos == 4 and not self.porta_fechada) or (self.caroline_caminho == "porta" and self.caroline_pos == 6 and not self.porta_fechada) or (self.jon_pos == 5) or (self.caroline_caminho == "tubulacao" and self.caroline_pos == 6):
                 print("\n💀 JUMPSCARE! Um animatrônico te pegou!")
-                time.sleep(2)
+                pausar(2)
                 return "morte"
             
             furia_atual = self.furia if self.turno >= 12 else 1
@@ -560,14 +593,14 @@ class MinigameSeguranca:
             if random.randint(1, 100) > 80: self.alberto_troll = True
 
             print("\n[Atualizando sistema...]")
-            time.sleep(3.5)
+            pausar(3.5)
 
         if self.turno >= 24:
             limpar_tela()
-            digitar(f"{DOS_BRANCO}🔔 DONG... DONG... 06:00 AM!{RESET}")
-            time.sleep(2)
-            digitar(f"{DOS_BRANCO}O sol começa a nascer. A energia retorna aos poucos.{RESET}")
-            digitar(f"{DOS_BRANCO}Você sobreviveu à noite! A porta da sala destranca.{RESET}")
+            digitar("🔔 DONG... DONG... 06:00 AM!", 0.03, DOS_BRANCO)
+            pausar(2)
+            digitar("O sol começa a nascer. A energia retorna aos poucos.", 0.03, DOS_BRANCO)
+            digitar("Você sobreviveu à noite! A porta da sala destranca.", 0.03, DOS_BRANCO)
             
             jogo.mapa["sala de jantar"]["descrição"] = "A luz da manhã invade as janelas sujas."
             jogo.mapa["hall de entrada"]["descrição"] = "O hall está iluminado."
@@ -576,19 +609,20 @@ class MinigameSeguranca:
             jogo.noite_vencida = True
 
             if jogo.fios_cortados_inventario:
-                time.sleep(2)
+                pausar(2)
                 radar = "   .---.\n /   |   \\\n|----O----|\n \\   |   /\n   '---'"
-                digitar(f"\n{DOS_AMARELO}Você saca o dispositivo.{RESET}\n{DOS_VERDE}{radar}{RESET}")
-                time.sleep(1)
-                digitar(f"{DOS_VERDE}[DISPOSITIVO]: PRESENÇA DETECTADA.{RESET}")
-                digitar(f"{DOS_AMARELO}Ela ainda está aqui...{RESET}\n", 0.04)
-                time.sleep(3)
+                digitar("\nVocê saca o dispositivo.", 0.03, DOS_AMARELO)
+                print(f"{DOS_VERDE}{radar}{RESET}")
+                pausar(1)
+                digitar("[DISPOSITIVO]: PRESENÇA DETECTADA.", 0.03, DOS_VERDE)
+                digitar("Ela ainda está aqui...\n", 0.04, DOS_AMARELO)
+                pausar(3)
             return "vitoria_seguranca"
             
         return "continuar"
 
 # ==========================================
-# FUNÇÕES DE COMANDOS (MODULAR DISPATCHER)
+# FUNÇÕES DE COMANDOS
 # ==========================================
 def cmd_ir(comando, jogo, mapa):
     direcao_bruta = comando.replace("ir ", "")
@@ -597,7 +631,7 @@ def cmd_ir(comando, jogo, mapa):
         direcao_bruta = direcao_bruta.replace(palavra, "")
     
     direcao = direcao_bruta.strip()
-    if direcao == "trás" or direcao == "tras":
+    if direcao in ["trás", "tras"]:
         direcao = "atrás"
     
     sala = mapa[jogo.sala_atual]
@@ -610,56 +644,50 @@ def cmd_ir(comando, jogo, mapa):
             limpar_tela()
             jogo.turnos_mesma_sala = 0
 
-            # Mecânica de tropeçar no escuro
             if jogo.turnos_luz <= 0 and random.randint(1, 100) <= 10:
-                print("\n😵 No escuro total, você perde a noção de direção, tropeça em uma mesa e cai duro no chão!")
+                print("\n😵 No escuro total, você perde a noção de direção, tropeça e cai duro no chão!")
                 jogo.hp -= 1
                 print(f"🩸 Você se machucou na queda. (HP: {jogo.hp})")
-                time.sleep(2)
+                pausar(2)
                 if jogo.hp <= 0:
                     jogo.sala_atual = "morte"
                 return 
 
             jogo.sala_atual = destino 
             
-            # Trava especial de segurança narrativa
             if jogo.sala_atual == "saida":
                 if jogo.noite_vencida and jogo.fios_cortados_inventario and not jogo.incendio:
                     print(f"\n{DOS_VERDE}[DISPOSITIVO]: NÍVEL 2 - PRESENÇA PRÓXIMA.{RESET}")
                     print(f"{DOS_AMARELO}'Eu preciso terminar isso antes...', você murmura para si mesmo.{RESET}")
                     print(f"{DOS_AMARELO}Você vira as costas para a saída. A Sala de Energia espera.{RESET}")
                     jogo.sala_atual = "entrada"
-                    time.sleep(3)
+                    pausar(3)
     else:
         print(f"Você não pode ir para '{direcao}'.")
-        time.sleep(1.5)
+        pausar(1.5)
 
 def cmd_pegar(comando, jogo, mapa):
     item_desejado = comando.replace("pegar ", "").strip()
     sala = mapa[jogo.sala_atual]
     
-    item_real_na_sala = None
-    for item in sala.get("itens", []):
-        if item_desejado in item:
-            item_real_na_sala = item
-            break
+    item_real_na_sala = next((item for item in sala.get("itens", []) if item_desejado in item), None)
     
     if item_real_na_sala:
-        if len(jogo.inventario) >= 3:
-            print(f"{DOS_AMARELO}🎒 Sua mochila está cheia! (Máx: 3). Use 'largar [item]' primeiro.{RESET}")
-            time.sleep(1.5)
+        if len(jogo.inventario) >= MAX_INVENTARIO:
+            print(f"{DOS_AMARELO}🎒 Sua mochila está cheia! (Máx: {MAX_INVENTARIO}). Use 'largar [item]' primeiro.{RESET}")
+            pausar(1.5)
             return
         
         if jogo.turnos_luz <= 0:
             chance = random.randint(1, 100)
             if chance <= 30:
                 print(f"{DOS_BRANCO}Você tateia o chão freneticamente, mas não encontra nada no escuro.{RESET}")
-                time.sleep(1.5)
+                pausar(1.5)
                 return 
             elif chance <= 40:
                 print(f"{DOS_VERMELHO}🩸 Ai! Você tateou um pedaço de vidro afiado no escuro!{RESET}")
                 jogo.hp -= 1
-                time.sleep(1.5)
+                pausar(1.5)
                 if jogo.hp <= 0:
                     print(f"{DOS_VERMELHO}Você sangrou até desmaiar na escuridão...{RESET}")
                     jogo.sala_atual = "morte"
@@ -668,10 +696,10 @@ def cmd_pegar(comando, jogo, mapa):
         sala["itens"].remove(item_real_na_sala) 
         jogo.inventario.append(item_real_na_sala)    
         print(f"{DOS_VERDE}🎒 Você pegou: {item_real_na_sala.upper()}{RESET}")
-        time.sleep(1)
+        pausar(1)
     else:
         print(f"{DOS_BRANCO}Não há nenhum '{item_desejado}' aqui para pegar.{RESET}")
-        time.sleep(1)
+        pausar(1)
 
 def cmd_largar(comando, jogo, mapa):
     item_desejado = comando.replace("largar ", "")
@@ -684,13 +712,13 @@ def cmd_largar(comando, jogo, mapa):
         print(f"Você largou '{item_desejado}' no chão desta sala.")
     else:
         print(f"Você não tem '{item_desejado}' para largar.")
-    time.sleep(1)
+    pausar(1)
 
 def cmd_examinar(comando, jogo, mapa):
     alvo = comando.replace("examinar ", "").replace("ex ", "").strip()
     if jogo.turnos_luz <= 0:
         print(f"{DOS_BRANCO}Está escuro demais para examinar qualquer detalhe de '{alvo}'.{RESET}")
-        time.sleep(1.5)
+        pausar(1.5)
         return
 
     sala = mapa[jogo.sala_atual]
@@ -698,28 +726,28 @@ def cmd_examinar(comando, jogo, mapa):
     
     if alvo in coisas_para_olhar:
         print(f"\n{DOS_VERDE}C:\\> ACESSANDO ARQUIVO DE DADOS...{RESET}")
-        time.sleep(1)
+        pausar(1)
         digitar(coisas_para_olhar[alvo], 0.03, DOS_AMARELO)
-        time.sleep(2)
+        pausar(2)
     elif alvo in jogo.inventario:
         print(f"\n🔎 {descricoes_itens.get(alvo, 'Não há nada de especial nisso.')}")
         if alvo == "tabua pequena de madeira":
             jogo.hp -= 1
             print(f"🩸 Ai! Você se machucou nas farpas. Perdeu 1 HP! (HP: {jogo.hp})")
-            if job.hp <= 0:
+            if jogo.hp <= 0:
                 print("Você sangrou demais na escuridão...")
                 jogo.sala_atual = "morte"
-        time.sleep(2)
+        pausar(2)
     else:
         print(f"Você olha para '{alvo}', mas não há nada de interessante ou você não possui o objeto.")
-        time.sleep(1)
+        pausar(1)
 
 def cmd_abrir_cofre(jogo):
     if jogo.sala_atual == "01":
         print(f"{DOS_BRANCO}O cofre de ferro possui um teclado numérico antigo.{RESET}")
         senha = input(f"{DOS_VERDE}Digite a senha de 4 dígitos: {RESET}").strip()
         
-        if senha == "1994": 
+        if senha == COFRE_SENHA: 
             print(f"{DOS_VERDE}CLICK! A pesada porta de metal se abre.{RESET}")
             if "chave dos fundos" not in jogo.inventario:
                 print(f"{DOS_AMARELO}Você encontrou a 'chave dos fundos' suja de graxa lá dentro!{RESET}")
@@ -728,24 +756,22 @@ def cmd_abrir_cofre(jogo):
                 print("O cofre está vazio. Apenas poeira.")
         else:
             print(f"{DOS_VERMELHO}BEEP! Senha incorreta. O painel pisca em vermelho.{RESET}")
-        time.sleep(2)
+        pausar(2)
     else:
         print("Não há nenhum cofre aqui para abrir.")
-        time.sleep(1.5)
+        pausar(1.5)
 
 def cmd_combinar(comando, jogo):
     comando_limpo = comando.replace("combinar ", "").replace("juntar ", "").replace(" + ", " com ")
     
     if "recortes" in comando_limpo or "jornal" in comando_limpo:
-        if "recorte 1" in jogo.inventario and "recorte 2" in jogo.inventario and "recorte 3" in jogo.inventario:
-            jogo.inventario.remove("recorte 1")
-            jogo.inventario.remove("recorte 2")
-            jogo.inventario.remove("recorte 3")
+        if all(r in jogo.inventario for r in ["recorte 1", "recorte 2", "recorte 3"]):
+            for r in ["recorte 1", "recorte 2", "recorte 3"]: jogo.inventario.remove(r)
             jogo.inventario.append("jornal completo")
-            print(f"{DOS_VERDE}📰 Você juntou os três recortes com fita! Formou o 'jornal completo'.{RESET}")
+            print(f"{DOS_VERDE}📰 Você juntou os recortes! Formou o 'jornal completo'.{RESET}")
         else:
-            print(f"{DOS_AMARELO}Você não tem os 3 recortes necessários na mochila para montar o jornal.{RESET}")
-        time.sleep(2)
+            print(f"{DOS_AMARELO}Você não tem os 3 recortes necessários na mochila.{RESET}")
+        pausar(2)
         return
 
     partes = comando_limpo.split(" com ")
@@ -761,7 +787,7 @@ def cmd_combinar(comando, jogo):
                     jogo.isqueiro_usos -= 1
                     jogo.inventario.remove("tocha"); jogo.inventario.append("tocha acesa")
                     jogo.turnos_luz = 2
-                    print(f"🔥 Você acendeu a tocha! A luz vai durar 2 turnos. (Usos isqueiro: {jogo.isqueiro_usos})")
+                    print(f"🔥 Você acendeu a tocha! A luz vai durar 2 turnos. (Usos: {jogo.isqueiro_usos})")
                 else: print("O isqueiro não faz faísca... acabou o gás!")
             elif ("papel" in partes) and ("isqueiro" in partes):
                 if jogo.isqueiro_usos > 0:
@@ -774,50 +800,49 @@ def cmd_combinar(comando, jogo):
                 jogo.inventario.remove("tesoura quebrada"); jogo.inventario.remove("fita isolante")
                 jogo.inventario.append("tesoura")
                 print("🛠️ Você passou fita na tesoura e estabilizou as lâminas!")
-            else: print("Esses itens não parecem combinar ou não fazem nada útil juntos.")
+            else: print("Esses itens não parecem combinar.")
         else: print("Você não tem esses itens no inventário para tentar combinar.")
     else: print("Formato inválido. Use: 'combinar [item1] com [item2]'")
-    time.sleep(2)
+    pausar(2)
 
 def cmd_usar(comando, jogo, mapa):
     item = comando.replace("usar ", "")
     if item not in jogo.inventario:
         print(f"Você não tem '{item}' no inventário.")
-        time.sleep(1.5)
+        pausar(1.5)
         return
 
     if item == "tabua pequena de madeira" and jogo.sala_atual == "entrada":
         print("Você usa a tábua para trancar a porta de entrada. Ninguém mais entra... e você não sai.")
         mapa["entrada"]["atrás"] = "parede"
         jogo.inventario.remove(item)
-        time.sleep(2)
+        pausar(2)
     elif item == "doce":
         jogo.hp += 1; jogo.turnos_enjoado = 2; jogo.inventario.remove("doce")
         print(f"🍬 Você engoliu o doce velho. Ganhou 1 HP! (HP: {jogo.hp})")
         print("Mas o gosto de açúcar mofado embrulha seu estômago...")
-        time.sleep(2)
+        pausar(2)
     elif item == "remedio":
         if jogo.hp < 3:
-            jogo.hp += 2
-            if jogo.hp > 3: jogo.hp = 3
+            jogo.hp = min(3, jogo.hp + 2)
             jogo.inventario.remove("remedio")
             print(f"💊 Você engole as pílulas secas. A dor diminui! (HP restaurado para {jogo.hp})")
         else: print("Você já está com a saúde máxima.")
-        time.sleep(2)
+        pausar(2)
     elif item == "pizza mofada":
         jogo.hp -= 1; jogo.turnos_enjoado = 4; jogo.inventario.remove("pizza mofada")
         print(f"🤢 Você comeu isso?! Uma dor terrível te ataca! Perdeu 1 HP. (HP: {jogo.hp})")
-        time.sleep(2)
+        pausar(2)
     elif item == "bateria nova":
         jogo.turnos_luz = 10; jogo.inventario.remove("bateria nova")
         print(f"{DOS_VERDE}💡 Você trocou as pilhas! A sua lanterna brilha com força total (10 turnos de luz).{RESET}")
-        time.sleep(2)
+        pausar(2)
     elif item == "tesoura" and jogo.sala_atual == "corredor":
         print("Você usa a tesoura na fechadura emperrada da porta 03. O metal estala e a porta abre!")
         mapa["corredor"]["03"] = "sala do gerador"
         jogo.inventario.remove("tesoura"); jogo.inventario.append("tesoura quebrada")
         print("A tesoura quebrou com o esforço.")
-        time.sleep(2)
+        pausar(2)
     elif item == "fios cortados" and jogo.sala_atual == "sala do gerador":
         print("\n🔥 Você joga os fios na fiação principal desencapada!")
         print("UM CURTO-CIRCUITO GIGANTE! O painel explode e as chamas começam a lamber as paredes!")
@@ -826,11 +851,11 @@ def cmd_usar(comando, jogo, mapa):
         mapa["entrada"]["descrição"] = "A porta! Está logo ali! O calor é insuportável!"
         mapa["corredor"]["descrição"] = "O corredor está em chamas! Fumaça preenche seus pulmões!"
         mapa["sala de jantar"]["descrição"] = "As mesas estão queimando, o teto está caindo!"
-        time.sleep(3)
+        pausar(3)
     elif item in ["isqueiro", "fosforo"] and jogo.sala_atual == "sala dos fundos":
         if jogo.noite_vencida:
             print(f"\nVocê saca o {item}. A carcaça do coelho rosa avança na sua direção nas sombras.")
-            time.sleep(2)
+            pausar(2)
             if jogo.incendio and item == "fosforo":
                 print("Com o restaurante caindo aos pedaços, você acende o fósforo e joga na fantasia!")
                 print("A passagem está livre. CORRA!")
@@ -843,25 +868,25 @@ def cmd_usar(comando, jogo, mapa):
         else: print("Você balança a luz, mas não há nada aqui... ainda.")
     elif item == "moeda velha" and jogo.sala_atual == "sala 1":
         print("A moeda não faz nada aqui sozinha. Tente 'jogar consertos' na Sala de Fliperamas!")
-        time.sleep(2)
+        pausar(2)
     elif item == "chave da cozinha" and jogo.sala_atual == "corredor":
         print("Você coloca a chave na fechadura da Sala 02. Ela gira com um 'clique' pesado.")
         mapa["corredor"]["02"] = "cozinha privada"; jogo.inventario.remove("chave da cozinha")
         print(f"{DOS_VERDE}A porta da Cozinha Privada está destrancada.{RESET}")
-        time.sleep(2)
+        pausar(2)
     elif item == "chave dos fundos" and jogo.sala_atual == "sala de jantar":
         print("Você insere a chave suja na porta de metal à esquerda. A tranca estala!")
         mapa["sala de jantar"]["esquerda"] = "sala dos fundos"; jogo.inventario.remove("chave dos fundos")
         print(f"{DOS_VERDE}O caminho para a Sala dos Fundos foi destrancado. Um ar gelado sai de lá...{RESET}")
-        time.sleep(2)
+        pausar(2)
     else:
         print(f"Você tenta usar '{item}' aqui, mas nada de útil acontece.")
-        time.sleep(1.5)
+        pausar(1.5)
 
 def cmd_jogar(comando, jogo):
     if jogo.sala_atual != "sala de fliperamas":
         print("Não há fliperamas aqui para jogar.")
-        time.sleep(1.5)
+        pausar(1.5)
         return
 
     jogo_nome = comando.replace("jogar ", "").strip()
@@ -896,12 +921,12 @@ def cmd_jogar(comando, jogo):
             digitar("MENSAGEM: 'Eles não saíram pela porta da frente em 94.'", 0.03, DOS_VERMELHO)
         
         jogo.turnos_luz -= 1
-        time.sleep(3)
+        pausar(3)
 
     elif jogo_nome == "consertos":
         if "moeda velha" not in jogo.inventario:
             print("A máquina 'Consertos & Sorrisos' exige uma ficha (moeda velha) para iniciar.")
-            time.sleep(2)
+            pausar(2)
             return
             
         jogo.inventario.remove("moeda velha")
@@ -910,7 +935,7 @@ def cmd_jogar(comando, jogo):
         print(f"{DOS_BRANCO}{arte_robo}{RESET}")
         digitar("--- CONSERTOS & SORRISOS ---", 0.03, DOS_VERDE)
         print("Bem-vindo, Mecânico! Vamos montar nosso novo Festeiro!")
-        time.sleep(1)
+        pausar(1)
         
         print(f"\n{DOS_AMARELO}[ FASE 1: SELEÇÃO DE PEÇAS ]{RESET}")
         input("Escolha a Cabeça (1- Urso | 2- Coelho): ")
@@ -918,20 +943,20 @@ def cmd_jogar(comando, jogo):
         input("Escolha os Membros Inferiores (1- Aço | 2- Pelúcia): ")
         
         digitar("[ FASE 2: CONECTANDO AS PARTES... ]", 0.03, DOS_AMARELO)
-        time.sleep(1.5)
+        pausar(1.5)
         digitar("Encaixando membros inferiores ao chassi principal...", 0.04, DOS_BRANCO)
         digitar("> AVISO: Fragmentos de osso humano bloqueando a mola. Forçando encaixe...", 0.05, DOS_VERMELHO)
-        time.sleep(1.5)
+        pausar(1.5)
         digitar("\nSoldando os braços e o tronco central...", 0.04, DOS_BRANCO)
-        digitar("> ERRO: Sensor de odores indica tecido necrosado e carne em decomposição. Ignorando...", 0.05, DOS_VERMELHO)
-        time.sleep(1.5)
+        digitar("> ERRO: Sensor de odores indica tecido necrosado e carne em decomposição...", 0.05, DOS_VERMELHO)
+        pausar(1.5)
         digitar("\nConectando a cabeça ao pescoço eletrônico...", 0.04, DOS_BRANCO)
         digitar("> AVISO CRÍTICO: Cordas vocais humanas bloqueando o servo motor da mandíbula.", 0.05, DOS_VERMELHO)
         digitar("> O animatrônico está chorando?", 0.08, DOS_VERMELHO)
-        time.sleep(2)
+        pausar(2)
         
         print(f"\n{DOS_VERDE}CONSERTO CONCLUÍDO! O ANIMATRÔNICO SORRI PARA VOCÊ!{RESET}")
-        time.sleep(1)
+        pausar(1)
         
         if "chave da cozinha" not in jogo.inventario:
             print(f"{DOS_BRANCO}A gaveta de prêmios se abre com um barulho metálico.{RESET}")
@@ -939,7 +964,7 @@ def cmd_jogar(comando, jogo):
             print(f"{DOS_VERDE}🎒 Você obteve: CHAVE DA COZINHA!{RESET}")
         
         jogo.turnos_luz -= 1
-        time.sleep(3)
+        pausar(3)
 
     elif jogo_nome == "adivinha" or jogo_nome == "julgamento":
         limpar_tela()
@@ -954,7 +979,7 @@ def cmd_jogar(comando, jogo):
         print(f"{DOS_BRANCO}{arte_piano}{RESET}")
         digitar("--- O JULGAMENTO DO PIANISTA ---", 0.03, DOS_VERDE)
         print(f"{DOS_BRANCO}O animatrônico de dados desperta. Ele detém todas as respostas do IPD.{RESET}")
-        time.sleep(1)
+        pausar(1)
         
         pontos = 0
         
@@ -979,7 +1004,7 @@ def cmd_jogar(comando, jogo):
             print(f"{DOS_BRANCO}A máquina toca uma nota suave e agradável.{RESET}"); pontos += 1
         else: print(f"{DOS_VERMELHO}Acorde dissonante. Você esqueceu seu próprio nome.{RESET}")
 
-        print(f"\n{DOS_AMARELO}PERGUNTA 5: Quem são as três vítimas deste local? (Digite um nome de cada vez){RESET}")
+        print(f"\n{DOS_AMARELO}PERGUNTA 5: Quem são as três vítimas deste local? (Digite um nome por vez){RESET}")
         vitimas_restantes = ["angela", "joao", "renato"]
         acertos_vitimas = 0
         for i in range(3):
@@ -996,7 +1021,7 @@ def cmd_jogar(comando, jogo):
         if acertos_vitimas == 3: pontos += 1
             
         print(f"\n{DOS_BRANCO}Calculando o seu julgamento...{RESET}")
-        time.sleep(2)
+        pausar(2)
         
         if pontos == 5:
             digitar("VOCÊ É ELE. VOCÊ CONHECE A NOSSA DOR.", 0.08, DOS_VERDE)
@@ -1008,14 +1033,11 @@ def cmd_jogar(comando, jogo):
             print(f"{DOS_BRANCO}A tela desliga. Você perdeu sua chance.{RESET}")
             
         jogo.turnos_luz -= 1
-        time.sleep(3)
+        pausar(3)
     else:
         print(f"Não existe um fliperama chamado '{jogo_nome}'. Máquinas ligadas: 'jon', 'consertos' e 'julgamento'.")
-        time.sleep(2)
+        pausar(2)
 
-# ==========================================
-# CENTRAL COMMAND DISPATCHER (PROCESSO CENTRAL)
-# ==========================================
 def processar_comando(comando, jogo, mapa):
     if comando.startswith("ir "):
         cmd_ir(comando, jogo, mapa); return True
@@ -1033,39 +1055,47 @@ def processar_comando(comando, jogo, mapa):
         cmd_jogar(comando, jogo); return True
     elif comando == "abrir cofre":
         cmd_abrir_cofre(jogo); return True
+    elif comando == "salvar":
+        salvar_jogo(jogo); return False
+    elif comando == "carregar":
+        carregar_jogo(jogo); return False
+    elif comando == "ajuda" or comando == "comandos":
+        print(f"\n{DOS_AMARELO}--- COMANDOS DO SISTEMA ---{RESET}")
+        print("Mover: 'ir [frente/atrás/esquerda/direita/sala/etc]'")
+        print("Itens: 'pegar [item]', 'largar [item]', 'usar [item]'")
+        print("Ações: 'examinar [item/cenario]', 'combinar [item] com [item]'")
+        print("Jogos: 'jogar [nome]', 'abrir cofre'")
+        print("Outros: 'inventario' (ou 'i'), 'olhar' (ou 'o'), 'salvar', 'carregar'")
+        pausar(2); return False
     elif comando == "inventario" or comando == "i":
         if len(jogo.inventario) > 0: print(f"🎒 Seu inventário: {', '.join(jogo.inventario)}")
         else: print("🎒 Seu inventário está vazio.")
-        time.sleep(2); return False 
+        pausar(2); return False 
     elif comando == "olhar" or comando == "o":
         return False 
     elif comando == "cls" or comando == "limpar":
         limpar_tela(); return False
     elif comando == "whoami":
         digitar("Sou eu, Rogério.", 0.08, DOS_VERMELHO)
-        time.sleep(2); return False
+        pausar(2); return False
     elif comando == "format c:":
         digitar("FORMATAÇÃO INICIADA...", 0.05, DOS_VERMELHO)
         print(f"{DOS_VERMELHO}ERRO CRÍTICO 0x0000: PRESENÇA ULTERIOR PRESA NO DISCO.{RESET}")
-        time.sleep(2); return False
+        pausar(2); return False
     elif comando == "sair":
         print("Você desistiu de jogar...")
         sys.exit()
     else:
-        print("Comando inválido ou não reconhecido. Tente 'ir [direção]', 'pegar [item]' ou 'olhar'.")
-        time.sleep(1.5); return False
+        print("Comando inválido ou não reconhecido. Digite 'ajuda' para ver os comandos.")
+        pausar(1.5); return False
 
-# ==========================================
-# GERENCIADOR DE TEMPO E AMBIENTE (FIM DE TURNO)
-# ==========================================
 def atualizar_eventos_de_tempo(jogo):
-    # Gerencia Luz e Paranoia
     if jogo.turnos_luz > 0:
         jogo.turnos_luz -= 1
         jogo.turnos_no_escuro = 0
         if jogo.turnos_luz == 0:
             print("\n💨 A escuridão volta a dominar... Sua fonte de luz se apagou!")
-            time.sleep(1.5)
+            pausar(1.5)
     else:
         jogo.turnos_no_escuro += 1
         if jogo.turnos_no_escuro == 3: print("\n👀 As sombras parecem se mexer nos cantos da sua visão...")
@@ -1076,11 +1106,10 @@ def atualizar_eventos_de_tempo(jogo):
             print("\n" + "="*50)
             print("Na escuridão total, dois olhos brancos se abrem a centímetros do seu rosto.")
             print("Homem das Sombras: 'Você não devia ter deixado a luz apagar...'")
-            time.sleep(4)
+            pausar(4)
             print("\n[ FINAL ???: MENTE FRATURADA ]")
             jogo.sala_atual = "morte"
 
-    # Incêndio Progressivo
     if jogo.incendio:
         jogo.turnos_fuga -= 1
         print(f"\n🚨 O RESTAURANTE ESTÁ DESMORONANDO! ({jogo.turnos_fuga} turnos para fugir)")
@@ -1088,13 +1117,11 @@ def atualizar_eventos_de_tempo(jogo):
             print("\n🔥 O teto desaba sobre você. O fogo consome o que restou.")
             jogo.sala_atual = "morte"
 
-    # Enjoo por comida estragada
     if jogo.turnos_enjoado > 0:
         print("\n🤢 Você está enjoado e com tontura... Seus olhos embaçam.")
         if jogo.turnos_luz > 0: jogo.turnos_luz -= 1
         jogo.turnos_enjoado -= 1
 
-    # Mecânica do Perseguidor de Turnos Estáticos
     jogo.turnos_mesma_sala += 1
     if jogo.turnos_mesma_sala == jogo.turnos_perseguidor_aviso:
         print("\n⚠️ Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
@@ -1102,9 +1129,6 @@ def atualizar_eventos_de_tempo(jogo):
         print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada!\n" + "="*50)
         jogo.sala_atual = "morte"
 
-# ==========================================
-# INTERFACE DO MENU INICIAL
-# ==========================================
 def menu_inicial():
     limpar_tela()
     digitar("VILLAS-BOAS INDUSTRIES (C) 1983", 0.01, DOS_BRANCO)
@@ -1112,7 +1136,7 @@ def menu_inicial():
     digitar("RAM CHECK: 640KB OK", 0.01, DOS_VERDE)
     digitar("DRIVE A: READY", 0.01, DOS_VERDE)
     digitar("CARREGANDO 'COMMAND.COM'....... OK\n", 0.05, DOS_VERDE)
-    time.sleep(1)
+    pausar(1)
     
     digitar("==================================================", 0.005, DOS_VERDE)
     digitar("__     _____ _     _        _ ____   ___   ____ ", 0.005, DOS_VERDE)
@@ -1170,26 +1194,24 @@ def menu_inicial():
     limpar_tela()
     digitar(f"C:\\> CONFIGURANDO AMBIENTE MODO_{jogo.dificuldade_escolhida}...", 0.02, DOS_VERDE)
     digitar("C:\\> INICIANDO ARQUIVO 'JOGO.EXE'...\n", 0.05, DOS_VERDE)
-    time.sleep(2)
+    pausar(2)
     limpar_tela()
 
 # ==========================================
-# FLUXO PRINCIPAL EXECUTÁVEL
+# MOTOR PRINCIPAL
 # ==========================================
 menu_inicial()
-time.sleep(1)
+pausar(1)
 print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
 print(f"{DOS_BRANCO}Você entra no restaurante. Sua lanterna velha dá três piscadas fracas...{RESET}")
-time.sleep(2)
+pausar(2)
 print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ EM ATÉ 3 TURNOS.{RESET}\n")
-time.sleep(2)
+pausar(2)
 
-# O LOOP DO MOTOR DO JOGO
 while True:
     try:
         print("\n" + "="*50)
 
-        # 1. INTERCEPTADORES E GATILHOS DA MÁQUINA DE ESTADOS DO MINIGAME
         if jogo.sala_atual == "sala de energia" and not jogo.fios_cortados_inventario:
             if not isinstance(jogo.minigame_atual, MinigameMinotauro):
                 jogo.minigame_atual = MinigameMinotauro(jogo)
@@ -1198,7 +1220,6 @@ while True:
             if not isinstance(jogo.minigame_atual, MinigameSeguranca):
                 jogo.minigame_atual = MinigameSeguranca(jogo)
 
-        # 1.5 DELEGAÇÃO DA MÁQUINA DE ESTADOS (TURNO DO MINIGAME ATIVO)
         if jogo.minigame_atual:
             jogo.minigame_atual.imprimir_status()
             comando = normalizar(input(f"\n{DOS_VERDE}Ação: {RESET}"))
@@ -1212,7 +1233,6 @@ while True:
                 jogo.minigame_atual = None; jogo.sala_atual = "01"
             continue 
 
-        # --- ARQUITETURA DE VERIFICAÇÃO DE FINAIS ---
         if jogo.sala_atual == "morte":
             limpar_tela()
             caveira = r'''
@@ -1249,21 +1269,21 @@ while True:
         elif jogo.sala_atual == "final_bom":
             limpar_tela()
             digitar("Voce acende o isqueiro e ilumina o local. A luz do fogo traz calma...", 0.04, DOS_VERDE)
-            time.sleep(1)
+            pausar(1)
             digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
-            time.sleep(1)
+            pausar(1)
             digitar("- 'Ainda estou aqui...'", 0.09, DOS_VERMELHO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Amor? É voce? Mesmo???", 0.05, DOS_AMARELO)
-            time.sleep(1)
+            pausar(1)
             digitar("- 'Eu espero que ainda seja eu...'", 0.09, DOS_VERMELHO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Caroline... desista desse corpo que não lhe pertence. Siga o rumo das estrelas.", 0.05, DOS_AMARELO)
-            time.sleep(2)
+            pausar(2)
             digitar("- ... *Caroline abraça Rogério*", 0.09, DOS_VERMELHO)
-            time.sleep(2)
+            pausar(2)
             digitar("- 'Vamos nos encontrar no céu, meu bem.'", 0.09, DOS_VERMELHO)
-            time.sleep(3)
+            pausar(3)
             limpar_tela()
             print(f"\n{DOS_BRANCO}[ FINAL BOM ]{RESET}")
             break
@@ -1273,35 +1293,34 @@ while True:
             digitar("Voce se aproxima do animatronico... dela. E encaixa os fios na sua fiação...", 0.05, DOS_BRANCO)
             digitar("Voce acende o isqueiro. Os olhos de plastico parecem te encarar.", 0.05, DOS_BRANCO)
             digitar("Os olhos piscam em vermelho, tentando fazer algo... e apagam.\n", 0.05, DOS_BRANCO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Por que não deu certo? O que eu fiz de errado?", 0.05, DOS_AMARELO)
-            time.sleep(1)
+            pausar(1)
             digitar("- '... voce fez dar certo'", 0.08, DOS_VERMELHO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Caro... Caroline? É você?", 0.05, DOS_AMARELO)
-            time.sleep(1)
+            pausar(1)
             digitar("*(Você abraça a carcaça de metal)*", 0.04, DOS_BRANCO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Meu corpo ficou em silencio, não sinto mais raiva.", 0.07, DOS_VERDE)
-            time.sleep(1)
+            pausar(1)
             digitar("*(O fogo se alastra pelo restaurante, a fumaça chega no hall)*", 0.04, DOS_BRANCO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Me sinta pela ultima vez.", 0.07, DOS_VERDE)
             digitar("*(Voce sente mãos invisíveis em seus ombros, um alivio inunda sua mente)*", 0.04, DOS_BRANCO)
-            time.sleep(1)
+            pausar(1)
             digitar("- Obrigada por me deixar assim pela ultima vez.", 0.07, DOS_VERDE)
-            time.sleep(1)
+            pausar(1)
             digitar("- Eu te amo.", 0.06, DOS_AMARELO)
-            time.sleep(2)
+            pausar(2)
             digitar("*(O animatronico cai no chão, o fogo cobre o metal e o plástico)*", 0.05, DOS_BRANCO)
-            time.sleep(2)
+            pausar(2)
             digitar("\n[DISPOSITIVO]: NENHUMA PRESENÇA DETECTADA.", 0.05, DOS_VERDE)
-            time.sleep(2)
+            pausar(2)
             digitar("Você se levanta e caminha para a saída antes que o teto desabe.", 0.05, DOS_BRANCO)
             print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO: CINZAS DO PASSADO ]{RESET}")
             break
 
-        # 2. CARREGAMENTO DINÂMICO DA INFRAESTRUTURA DA SALA
         sala = jogo.mapa[jogo.sala_atual]
         print(f"📍 VOCÊ ESTÁ EM: {jogo.sala_atual.upper()}")
         print(f"👁️  Visão: {sala['descrição']}")
@@ -1312,20 +1331,16 @@ while True:
             else:
                 print("📦 Deve ter algo no chão, mas está escuro demais para ver o quê.")
 
-        # 3. CONSTRUÇÃO DA HUD DO USUÁRIO
         print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
-        print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/3 ]{RESET}")
+        print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
         
         comando = normalizar(input(f"{DOS_VERDE}C:\\> {RESET}"))
 
-        # 4. CAPTURA E DESPACHO DO COMANDO DO JOGADOR
         gastou_turno = processar_comando(comando, jogo, jogo.mapa)
 
-        # 5. EXECUÇÃO DE EVENTOS CRÍTICOS DA LINHA DO TEMPO (SE HOUVER AVANÇO)
         if gastou_turno:
             atualizar_eventos_de_tempo(jogo)
 
-    # 6. BLINDAGEM DE EXCEÇÃO CAPTURA TUDO (REDE DE SEGURANÇA CONTRA CRASHES)
     except Exception as e:
         print(f"\n{DOS_VERMELHO}[ FALHA GERAL DE SISTEMA - TELA AZUL ]{RESET}")
         print(f"{DOS_BRANCO}O sistema Villas Boas encontrou uma anomalia na realidade.{RESET}")
@@ -1334,6 +1349,5 @@ while True:
         time.sleep(4)
         continue
 
-# SINALIZADOR FINAL DE ENCERRAMENTO
 print("\n" + "="*50)
-input(f"{DOS_BRANCO}[PRESSIONE ENTER PARA SAIR DO SISTEMA]{RESET}")
+input(f"{DOS_BRANCO}[PRESSIONE ENTER PARA FECHAR]{RESET}")
