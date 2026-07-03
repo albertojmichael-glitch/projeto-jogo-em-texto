@@ -720,23 +720,36 @@ def cmd_largar(comando, jogo, mapa):
     pausar(1)
 
 def cmd_examinar(comando, jogo, mapa):
-    alvo = comando.replace("examinar ", "").replace("ex ", "").strip()
+    alvo_bruto = comando.replace("examinar ", "").replace("ex ", "").strip()
+    
+    # 1. Filtro inteligente: Remove artigos para focar no substantivo
+    palavras_ignoradas = [" o ", " a ", " um ", " uma ", " os ", " as "]
+    alvo_limpo = f" {alvo_bruto} "
+    for palavra in palavras_ignoradas:
+        alvo_limpo = alvo_limpo.replace(palavra, " ")
+    alvo = alvo_limpo.strip()
+
     if jogo.turnos_luz <= 0:
-        print(f"{DOS_BRANCO}Está escuro demais para examinar qualquer detalhe de '{alvo}'.{RESET}")
+        print(f"{DOS_BRANCO}Está escuro demais para examinar '{alvo_bruto}'.{RESET}")
         pausar(1.5)
         return
 
     sala = mapa[jogo.sala_atual]
     coisas_para_olhar = sala.get("inspecionaveis", {})
     
-    if alvo in coisas_para_olhar:
+    # 2. Busca Flexível: Verifica se a palavra digitada faz parte do nome real (ou vice-versa)
+    item_cenario = next((k for k in coisas_para_olhar.keys() if alvo in k or k in alvo), None)
+    item_inventario = next((i for i in jogo.inventario if alvo in i or i in alvo), None)
+    
+    # 3. Executa a ação dependendo de onde o item foi encontrado
+    if item_cenario:
         print(f"\n{DOS_VERDE}C:\\> ACESSANDO ARQUIVO DE DADOS...{RESET}")
         pausar(1)
-        digitar(coisas_para_olhar[alvo], 0.03, DOS_AMARELO)
+        digitar(coisas_para_olhar[item_cenario], 0.03, DOS_AMARELO)
         pausar(2)
-    elif alvo in jogo.inventario:
-        print(f"\n🔎 {descricoes_itens.get(alvo, 'Não há nada de especial nisso.')}")
-        if alvo == "tabua pequena de madeira":
+    elif item_inventario:
+        print(f"\n🔎 {descricoes_itens.get(item_inventario, 'Não há nada de especial nisso.')}")
+        if item_inventario == "tabua pequena de madeira":
             jogo.hp -= 1
             print(f"🩸 Ai! Você se machucou nas farpas. Perdeu 1 HP! (HP: {jogo.hp})")
             if jogo.hp <= 0:
@@ -744,8 +757,8 @@ def cmd_examinar(comando, jogo, mapa):
                 jogo.sala_atual = "morte"
         pausar(2)
     else:
-        print(f"Você olha para '{alvo}', mas não há nada de interessante ou você não possui o objeto.")
-        pausar(1)
+        print(f"Você olha para '{alvo_bruto}', mas não há nada de interessante ou você não possui o objeto.")
+        pausar(1.5)
 
 def cmd_abrir_cofre(jogo):
     if jogo.sala_atual == "01":
@@ -1207,7 +1220,7 @@ def menu_inicial():
 # ==========================================
 
 if __name__ == "__main__":
-    
+
     menu_inicial()
     pausar(1)
     print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
