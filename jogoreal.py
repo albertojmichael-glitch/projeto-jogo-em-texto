@@ -8,6 +8,8 @@ import sys
 
 import os
 
+import unicodedata
+
 if sys.platform == "win32":
     os.system("color") # Esse comando força o CMD do Windows a ativar o suporte a cores ANSI!
 
@@ -34,6 +36,12 @@ DOS_BRANCO = '\033[97m'   # Branco forte
 DOS_AMARELO = '\033[93m'  # Para destacar itens e luz
 DOS_VERMELHO = '\033[91m' # Para sangue e erros críticos
 RESET = '\033[0m'         # Reseta a cor para o padrão do terminal
+
+# --- FUNÇÃO PARA REMOVER ACENTOS ---
+def normalizar(texto):
+    # Transforma 'tábua' em 'tabua', 'JOÃO' em 'joao', etc.
+    texto_sem_acento = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('utf-8')
+    return texto_sem_acento.strip().lower()
 
 # --- FUNÇÃO DE DIGITAR (COM SISTEMA DE PÂNICO) ---
 def digitar(texto, tempo_base=0.03):
@@ -113,7 +121,7 @@ def menu_inicial():
             dificuldade_escolhida = "PESADELO"
             break
         
-        elif opcao == "1983":
+        elif opcao == "1985":
             # O MODO SECRETO: CUSTOM NIGHT
             limpar_tela()
             digitar(f"{DOS_VERMELHO}[ ACESSO RESTRITO: NOITE CUSTOMIZADA ]{RESET}")
@@ -169,6 +177,10 @@ mapa = {
         "descrição": "você está na entrada do restaurante, está muito escuro, e as luzes piscam de forma ordenada, cheira mal",
 
         "frente": "sala de jantar",
+        
+        "inspecionaveis": {
+            "poster": "Um pôster desbotado com os animatrônicos sorrindo: 'Bem-vindo ao Vilas Boas! Trazendo alegria desde 1982.'"
+        },
 
         "direita": "hall de entrada",
 
@@ -194,7 +206,7 @@ mapa = {
 
         "atrás": "entrada",
 
-        "itens": ["papel"]
+        "itens": ["papel", "recorte 1"]
 
     },
 
@@ -226,7 +238,7 @@ mapa = {
 
         "esquerda": "parede de ventiladores",
 
-        "itens": []
+        "itens": ["bateria nova"]
 
     },
 
@@ -298,6 +310,7 @@ mapa = {
         "atrás": "corredor",
 
         "inspecionaveis": {
+
             "papeis": "Tem muitos papeis encima da segunda mesa, emails e memorandos que deveriam estar pendurados em algum lugar. Não da pra ler muita coisa, mas algo chama atenção '1994..' são de 2007",
 
         },
@@ -308,7 +321,7 @@ mapa = {
 
         "cofre_importante": "cofre",
 
-        "itens": []
+        "itens": ["recorte 3"]
 
     },
 
@@ -360,6 +373,16 @@ mapa = {
 
     },
 
+    "sala do gerador": {
+
+        "descrição": "A antiga sala de energia (porta 03). O gerador principal está aqui. Há fios soltos e um painel exposto. Cheira a borracha queimada.",
+
+        "atrás": "corredor",
+
+        "itens": []
+
+    },
+
     "cozinha privada": {
 
         "descrição": "Uma cozinha industrial imunda. O cheiro do mofo é insuportável. As panelas estão enferrujadas.",
@@ -399,12 +422,12 @@ mapa = {
 
         "esquerda": "sala de fliperamas",
 
-        "itens": []
+        "itens": ["recorte 2"]
 
     },
 
     "sala de fliperamas": {
-        "descrição": "O chão tem carpete neon sujo. Há três máquinas funcionando fracamente: 'Sorte' (Caça-Níqueis), 'Jokenpo' e 'Adivinha'. Digite 'jogar [nome do jogo]'.",
+        "descrição": "O chão tem carpete neon sujo. Há três máquinas funcionando fracamente: 'fome de jon', 'consertar' e 'julgamento'. Digite 'jogar [nome do jogo]'.",
         "direita": "sala 1",
         "itens": []
     },
@@ -463,7 +486,7 @@ mapa = {
     "sala de equipamento": {
         "descrição": "Apenas ferramentas velhas e graxa seca pelo chão.",
         "atrás": "sala dos fundos",
-        "itens": []
+        "itens": ["bateria nova"]
     },
     "sala de animatronicos": {
         "descrição": "Você abre a porta e vê várias carcaças de metal desmontadas. Uma delas vira a cabeça devagar para você! Você bate a porta na mesma hora.",
@@ -528,6 +551,11 @@ descricoes_itens = {
     "chave da cozinha": "Uma chave prateada com um chaveiro sujo de graxa.",
     "remedio": "Um frasco de analgésicos vencidos. Pode ajudar com a dor.",
     "pizza mofada": "Um pedaço de pizza de 1994. Tem uma cor verde fluorescente. Eu não comeria isso.",
+    "bateria nova": "Uma bateria industrial pesada. Vai recarregar a sua lanterna no máximo!",
+    "recorte 1": "Pedaço de jornal de 1994: '...o cliente João Barros Silva Ferreira, 31 anos, desapareceu...' ",
+    "recorte 2": "Parte central da notícia: '...a garçonete Ângela Silva Andrade, de 24 anos, vista pela última vez...' ",
+    "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis Gomes, de 46 anos, afundou com o restaurante.'",
+    "jornal completo": "Os três recortes unidos. Conta a história completa das três vítimas do IPD de 1994.",
     "fita isolante": "Um rolo de fita preta grossa. Metade já foi usada, mas a cola ainda serve."
 }
 
@@ -1012,7 +1040,7 @@ while True:
 
         print(f"{DOS_VERMELHO}{caveira}{RESET}")
         print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
-        break # Encerra o jogo
+        continue
         
     elif sala_atual == "saida":
         print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE: A IGNORÂNCIA É UMA BÊNÇÃO ]{RESET}")
@@ -1021,14 +1049,6 @@ while True:
     elif sala_atual == "cama":
         print(f"\n{DOS_BRANCO}[ FINAL BONS SONHOS ]{RESET}")
         break
-
-    # ==========================================
-    # CARREGAMENTO DO MAPA NORMAL
-    # ==========================================
-    # Se não for nenhum dos eventos acima, carrega a sala normal sem dar KeyError!
-    sala = mapa[sala_atual]
-
-   
 
     # 1. CHECAGEM DE FINAIS (Sempre antes de puxar o mapa!)
 
@@ -1098,53 +1118,13 @@ while True:
         print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO]{RESET}")
         break
 
-    elif sala_atual == "morte":
-        limpar_tela()
-        caveira = (
-            "           .ed\"\"\"\" \"\"\"$$$$be.\n"
-            "         -\"           ^\"\"**$$$e.\n"
-            "       .\"                   '$$$c\n"
-            "      /                      \"4$$b\n"
-            "     d  3                      $$$$\n"
-            "     $  *                      .$$$$$$\n"
-            "    .$  ^c           $$$$$e$$$$$$$$.\n"
-            "    d$L  4.         4$$$$$$$$$$$$$$b\n"
-            "    $$$$b ^ceeeee.  4$$Ecl.F*$$$$$$$\n"
-            "    $$$$P d$$$$F $ $$$$$$$$$- $$$$$$\n"
-            "    3$$$F \"$$$$b   $\"$$$$$$$  $$$$*\"\n"
-            "     $$P\"  \"$$b   .$ $$$$$...e$$\n"
-            "      *c    ..    $$ 3$$$$$$$$$$eF\n"
-            "        %ce\"\"    $$$  $$$$$$$$$$*\n"
-            "         *$e.    *** d$$$$$\"L$$\n"
-            "          $$$      4J$$$$$% $$$\n"
-            "         $\"'$=e....$*$$**$cz$$\"\n"
-        )
-            
-        
 
-        print(f"{DOS_VERMELHO}{caveira}{RESET}")
-        print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
-        break # Encerra o jogo
-        
-    elif sala_atual == "uma mão te agarra por trás e voce desmaia":
-
-        print("\n🩸 FINAL SPRINGLOCK. Você foi pego na escuridão...")
-
-        break
-
-    elif sala_atual == "saida":
-
-        print("\n🚪 Você fugiu pela porta da frente... Que final medíocre.")
-
-        break
-
-       
-
-    # Se não for um final, puxa os dados da sala atual com segurança
-
+    # ==========================================
+    # CARREGAMENTO DO MAPA NORMAL
+    # ==========================================
+    # Se não for nenhum dos eventos acima, carrega a sala normal sem dar KeyError!
     sala = mapa[sala_atual]
 
-   
 
     # 2. MOSTRA ONDE O JOGADOR ESTÁ
 
@@ -1169,10 +1149,16 @@ while True:
     # MINI-HUD MS-DOS E PROMPT
     # ==========================================
     print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
-    print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{hp}/2{DOS_BRANCO} | LUZ: {DOS_AMARELO}{turnos_luz}{DOS_BRANCO} | INV: {len(inventario)}/3 ]{RESET}")
+
+    print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{turnos_luz}{DOS_BRANCO} | INV: {len(inventario)}/3 ]{RESET}")
     
-    # O clássico cursor do MS-DOS pedindo a ação
-    comando = input(f"{DOS_VERDE}C:\\> {RESET}").strip().lower()
+    # O clássico cursor do MS-DOS pedindo a ação (AGORA À PROVA DE ACENTOS!)
+    comando_bruto = input(f"{DOS_VERDE}C:\\> {RESET}")
+    comando = normalizar(comando_bruto)
+
+
+
+
 
     # 4. LÓGICA DE MOVIMENTO E GATILHOS DE SALA
 
@@ -1335,12 +1321,6 @@ while True:
             mapa["entrada"]["atrás"] = "parede" # Muda o mapa ao vivo! Não dá mais pra sair.
             inventario.remove(item) # O item gasta e some do inventário
             time.sleep(2)
-            
-        elif item == "tesoura" and sala_atual == "02": # Na porta da cozinha privada
-            print("Você usa a tesoura para arrombar a fechadura velha. A porta se abre!")
-            mapa["corredor"]["02"] = "cozinha privada_aberta" # Libera o caminho no mapa!
-            # inventario.remove(item) -> Se quiser que a tesoura quebre, tire o #
-            time.sleep(2)
         
         elif item == "doce":
             hp += 1
@@ -1365,6 +1345,12 @@ while True:
             turnos_enjoado = 4
             inventario.remove("pizza mofada")
             print(f"🤢 Você realmente comeu isso?! Uma dor de estômago terrível te ataca! Perdeu 1 HP. (HP: {hp})")
+            time.sleep(2)
+
+        elif item == "bateria nova":
+            turnos_luz = 10 # Dá-lhe imenso tempo de luz!
+            inventario.remove("bateria nova")
+            print(f"{DOS_VERDE}💡 Você trocou as pilhas! A sua lanterna brilha com força total (10 turnos de luz).{RESET}")
             time.sleep(2)
 
         # Abrir a Sala do gerador (Sala 03)
@@ -1544,6 +1530,18 @@ while True:
                         print(f"🔥 Você acendeu a tocha! A luz vai durar 2 turnos. (Usos do isqueiro: {isqueiro_usos})")
                     else:
                         print("O isqueiro não faz faísca... acabou o gás!")
+                
+                # LÓGICA DE JUNTAR OS RECORTES DE JORNAL
+                elif comando == "combinar recortes" or comando == "juntar recortes":
+                    if "recorte 1" in inventario and "recorte 2" in inventario and "recorte 3" in inventario:
+                        inventario.remove("recorte 1")
+                        inventario.remove("recorte 2")
+                        inventario.remove("recorte 3")
+                        inventario.append("jornal completo")
+                        print(f"{DOS_VERDE}📰 Você juntou os três recortes com fita! Formou o 'jornal completo'.{RESET}")
+                    else:
+                        print(f"{DOS_AMARELO}Você não tem os 3 recortes necessários na mochila para montar o jornal.{RESET}")
+                        time.sleep(2)
 
                 # RECEITA: PAPEL + ISQUEIRO = PAPEL ACESO
                 elif ("papel" in partes) and ("isqueiro" in partes):
@@ -1688,7 +1686,7 @@ while True:
                     
             if passo == 4:
                 digitar(f"\n{DOS_VERDE}Jon encontrou a 'comida'. A tela pinga um pixel vermelho.{RESET}")
-                digitar(f"{DOS_VERMELHO}MENSAGEM SECRETA: 'Eles não saíram pela porta da frente em 94.'{RESET}")
+                digitar(f"{DOS_VERMELHO}MENSAGEM: 'Eles não saíram pela porta da frente em 94.'{RESET}")
             
             turnos_luz -= 1
             time.sleep(3)
@@ -1746,9 +1744,101 @@ while True:
             
             turnos_luz -= 1
             time.sleep(3)
+
+        # ==========================================
+        # MÁQUINA 3: O JULGAMENTO DO PIANISTA
+        # ==========================================
+        elif jogo == "adivinha" or jogo == "julgamento":
+            limpar_tela()
+            arte_piano = r"""
+               .----------------.
+               |  [ O PIANISTA ]|
+               |   _ _ _ _ _    |
+               |  | | | | | |   |
+               |  |_|_|_|_|_|   |
+               '----------------'
+            """
+            print(f"{DOS_BRANCO}{arte_piano}{RESET}")
+            digitar(f"{DOS_VERDE}--- O JULGAMENTO DO PIANISTA ---{RESET}")
+            print(f"{DOS_BRANCO}O animatrônico de dados desperta. Ele detém todas as respostas do IPD.{RESET}")
+            time.sleep(1)
+            
+            pontos = 0
+            
+            # Pergunta 1
+            print(f"\n{DOS_AMARELO}PERGUNTA 1: Em que ano a nossa música parou para sempre?{RESET}")
+            resp1 = normalizar(input(f"{DOS_VERDE}Sua resposta: {RESET}"))
+            if resp1 == "1994":
+                print(f"{DOS_BRANCO}A máquina toca uma nota suave e agradável.{RESET}"); pontos += 1
+            else:
+                print(f"{DOS_VERMELHO}Acorde dissonante. Resposta incorreta.{RESET}")
+                
+            # Pergunta 2
+            print(f"\n{DOS_AMARELO}PERGUNTA 2: Qual animatrônico está atrás de você agora?{RESET}")
+            resp2 = normalizar(input(f"{DOS_VERDE}Sua resposta: {RESET}"))
+            if "caroline" in resp2 or "ela" in resp2:
+                print(f"{DOS_BRANCO}A máquina toca uma nota suave e agradável.{RESET}"); pontos += 1
+            else:
+                print(f"{DOS_VERMELHO}Acorde dissonante. Você não sente a presença dela?{RESET}")
+                
+            # Pergunta 3
+            print(f"\n{DOS_AMARELO}PERGUNTA 3: Em que ano tudo isso começou?{RESET}")
+            resp3 = normalizar(input(f"{DOS_VERDE}Sua resposta: {RESET}"))
+            if resp3 == "1982":
+                print(f"{DOS_BRANCO}A máquina toca uma nota suave e agradável.{RESET}"); pontos += 1
+            else:
+                print(f"{DOS_VERMELHO}Acorde dissonante. Não leu as boas vindas?{RESET}")
+                
+            # Pergunta 4
+            print(f"\n{DOS_AMARELO}PERGUNTA 4: Quem é você?{RESET}")
+            resp4 = normalizar(input(f"{DOS_VERDE}Sua resposta: {RESET}"))
+            if "rogerio" in resp4:
+                print(f"{DOS_BRANCO}A máquina toca uma nota suave e agradável.{RESET}"); pontos += 1
+            else:
+                print(f"{DOS_VERMELHO}Acorde dissonante. Você esqueceu seu próprio nome.{RESET}")
+
+            # Pergunta 5
+            print(f"\n{DOS_AMARELO}PERGUNTA 5: Quem são as três vítimas deste local? (Digite um nome de cada vez){RESET}")
+            vitimas_restantes = ["angela", "joao", "renato"]
+            acertos_vitimas = 0
+            
+            for i in range(3):
+                resp5 = normalizar(input(f"{DOS_VERDE}Vítima {i+1}: {RESET}"))
+                acertou_nesta = False
+                
+                for v in vitimas_restantes:
+                    if v in resp5: # Permite que ele digite o nome solto ou completo
+                        acertos_vitimas += 1
+                        vitimas_restantes.remove(v)
+                        acertou_nesta = True
+                        break
+                
+                if acertou_nesta:
+                    print(f"{DOS_BRANCO}A máquina processa o nome... Correto.{RESET}")
+                else:
+                    print(f"{DOS_VERMELHO}Acorde dissonante. Nome incorreto ou já citado.{RESET}")
+            
+            if acertos_vitimas == 3:
+                pontos += 1
+                
+            # Resultado
+            print(f"\n{DOS_BRANCO}Calculando o seu julgamento...{RESET}")
+            time.sleep(2)
+            
+            if pontos == 5:
+                digitar(f"{DOS_VERDE}VOCÊ É ELE. VOCÊ CONHECE A NOSSA DOR.{RESET}", 0.08)
+                if "bateria nova" not in inventario:
+                    print(f"{DOS_BRANCO}A gaveta inferior abre. Você encontrou uma 'bateria nova'!{RESET}")
+                    inventario.append("bateria nova")
+            else:
+                digitar(f"{DOS_VERMELHO}VOCÊ É IGNORANTE COMO OS OUTROS.{RESET}", 0.08)
+                print(f"{DOS_BRANCO}A tela desliga. Você perdeu sua chance.{RESET}")
+                
+            turnos_luz -= 1
+            time.sleep(3)
             
         else:
-            print(f"Não existe um fliperama chamado '{jogo}'. As máquinas ligadas são: 'jon' e 'consertos'.")
+            print(f"Não existe um fliperama chamado '{jogo}'. As máquinas ligadas são: 'jon' e 'consertos' e 'julgamento'.")
             time.sleep(2)
 
        
