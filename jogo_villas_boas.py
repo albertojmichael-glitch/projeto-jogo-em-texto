@@ -908,7 +908,16 @@ def cmd_ir(comando, jogo, mapa):
                     jogo.sala_atual = "morte"
                 return 
 
-            jogo.sala_atual = destino 
+            jogo.sala_atual = destino
+            
+            if jogo.dificuldade_escolhida == "PESADELO" and jogo.sala_atual == jogo.posicao_perseguidor:
+                limpar_tela()
+                print("\n" + "="*50)
+                print(f"{DOS_VERMELHO}Você virou para entrar na sala e deu de cara com o peito de metal enferrujado!{RESET}")
+                print(f"{DOS_VERMELHO}Ele te levanta pelo pescoço antes que você possa gritar.{RESET}")
+                pausar(4)
+                jogo.sala_atual = "morte"
+                return 
             
             if jogo.sala_atual == "saida":
                 if jogo.noite_vencida and jogo.fios_cortados_inventario and not jogo.incendio:
