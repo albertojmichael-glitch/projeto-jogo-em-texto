@@ -951,6 +951,12 @@ def cmd_pegar(comando, jogo, mapa):
 
 def cmd_largar(comando, jogo, mapa):
     item_desejado = comando.replace("largar ", "")
+    
+    if item_desejado == "lanterna":
+        print(f"{DOS_VERMELHO}Você enlouqueceu? Se largar a lanterna, não vai sobrar nada para iluminar.{RESET}")
+        pausar(2)
+        return
+        
     if item_desejado in jogo.inventario:
         jogo.inventario.remove(item_desejado)
         sala = mapa[jogo.sala_atual]
