@@ -431,7 +431,7 @@ descricoes_itens = {
 class GameState:
     def __init__(self):
         self.hp = 3
-        self.inventario = []
+        self.inventario = ["lanterna"] # A Punição Nº 1: Já ocupa 1 dos 3 slots!
         self.turnos_luz = 3
         self.turnos_no_escuro = 0
         self.turnos_enjoado = 0
@@ -449,6 +449,7 @@ class GameState:
         self.incendio = False
         self.turnos_fuga = 5
         self.isqueiro_usos = 3 
+        self.posicao_perseguidor = "palco" # A Punição Nº 2: Ele nasce no palco!
         self.mapa = copy.deepcopy(MAPA_ORIGINAL)
         self.minigame_atual = None
 
