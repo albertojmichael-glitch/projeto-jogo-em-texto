@@ -909,12 +909,12 @@ def cmd_ir(comando, jogo, mapa):
                 return 
 
             jogo.sala_atual = destino
-            
+
             if jogo.dificuldade_escolhida == "PESADELO" and jogo.sala_atual == jogo.posicao_perseguidor:
                 limpar_tela()
                 print("\n" + "="*50)
-                print(f"{DOS_VERMELHO}Você virou para entrar na sala e deu de cara com o peito de metal enferrujado!{RESET}")
-                print(f"{DOS_VERMELHO}Ele te levanta pelo pescoço antes que você possa gritar.{RESET}")
+                print(f"{DOS_VERMELHO}quando voce entra na sala, passos pesados e cheiro de fuligem fazem seu nariz doer, mas antes de qualquer ação sua, uma mão robotica segura seu pescoço{RESET}")
+                print(f"{DOS_VERMELHO}Ele te levanta antes que você possa gritar.{RESET}")
                 pausar(4)
                 jogo.sala_atual = "morte"
                 return 
