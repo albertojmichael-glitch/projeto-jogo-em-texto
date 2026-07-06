@@ -223,7 +223,7 @@ MAPA_ORIGINAL = {
         "direita": "balcão",
         "atrás": "hall de entrada",
         "esquerda": "balcão",
-        "itens": ["tesoura quebrada", "pelucias", "doce", "moeda velha"]
+        "itens": ["tesoura quebrada", "pelucias", "doce", "moeda velha", "disquete"]
     },
     "quarto de refrigeração": {
         "descrição": "voce entra no quarto, está muito frio e os ventiladores fazem um barulho alto, tem um tubo de ventilação no centro da sala",
@@ -280,7 +280,7 @@ MAPA_ORIGINAL = {
         "esquerda": "nada",
         "direita": "nada",
         "cofre_important": "cofre",
-        "itens": ["recorte 3"]
+        "itens": ["recorte 3", "disquete"]
     },
     "02": {
         "descrição": "porta trancada",
@@ -376,7 +376,7 @@ MAPA_ORIGINAL = {
     "sala de equipamento": {
         "descrição": "Apenas ferramentas velhas e graxa seca pelo chão.",
         "atrás": "sala dos fundos",
-        "itens": ["bateria nova"]
+        "itens": ["bateria nova", "disquete"]
     },
     "sala de animatronicos": {
         "descrição": "Várias carcaças de metal desmontadas. Uma delas vira a cabeça devagar para você! Você bate a porta.",
@@ -422,6 +422,8 @@ descricoes_itens = {
     "recorte 2": "Parte central da notícia: '...a garçonete Ângela Silva vista pela última vez...' ",
     "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis, afundou com o restaurante.'",
     "jornal completo": "Os três recortes unidos. Conta a história das três vítimas de 1994.",
+    "lanterna": "Sua lanterna velha de plástico. Ela ocupa espaço na mochila e não pode ser largada.",
+    "disquete": "Um disquete de 5¼ polegadas. Serve para salvar os dados do sistema no terminal.",
     "fita isolante": "Um rolo de fita preta grossa. A cola ainda serve."
 }
 
