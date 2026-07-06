@@ -1439,12 +1439,33 @@ def atualizar_eventos_de_tempo(jogo):
         if jogo.turnos_luz > 0: jogo.turnos_luz -= 1
         jogo.turnos_enjoado -= 1
 
-    jogo.turnos_mesma_sala += 1
-    if jogo.turnos_mesma_sala == jogo.turnos_perseguidor_aviso:
-        print("\n⚠️ Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
-    elif jogo.turnos_mesma_sala == jogo.turnos_perseguidor_morte:
-        print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada!\n" + "="*50)
-        jogo.sala_atual = "morte"
+    if jogo.dificuldade_escolhida == "NORMAL":
+        jogo.turnos_mesma_sala += 1
+        if jogo.turnos_mesma_sala == jogo.turnos_perseguidor_aviso:
+            print("\n⚠️ Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
+        elif jogo.turnos_mesma_sala == jogo.turnos_perseguidor_morte:
+            print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada!\n" + "="*50)
+            jogo.sala_atual = "morte"
+            
+    elif jogo.dificuldade_escolhida == "PESADELO":
+        # A IA Dinâmica do Monstro caçando no mapa
+        if jogo.posicao_perseguidor != "morte" and jogo.sala_atual not in ["saida", "cama", "final_bom", "morte", "tubo de ventilação"]: 
+            sala_monstro = jogo.mapa.get(jogo.posicao_perseguidor, {})
+            conexoes = [v for k, v in sala_monstro.items() if k not in ["descrição", "itens", "inspecionaveis"] and v in jogo.mapa and v not in ["morte", "saida", "cama"]]
+            
+            # Ele tem 40% de chance de andar para outra sala a cada turno seu
+            if conexoes and random.random() < 0.40: 
+                jogo.posicao_perseguidor = random.choice(conexoes)
+            
+            if jogo.posicao_perseguidor == jogo.sala_atual:
+                print("\n" + "="*50)
+                print(f"{DOS_VERMELHO}A porta estilhaça! A criatura monstruosa de 2 metros te encontrou!{RESET}")
+                pausar(3)
+                jogo.sala_atual = "morte"
+            else:
+                conexoes_jogador = [v for k, v in jogo.mapa[jogo.sala_atual].items() if k not in ["descrição", "itens", "inspecionaveis"] and isinstance(v, str)]
+                if jogo.posicao_perseguidor in conexoes_jogador:
+                    print(f"\n{DOS_AMARELO}⚠️ O chão vibra. Você ouve passos de puro metal maciço na sala ao lado...{RESET}")
 
 def menu_inicial():
     limpar_tela()
