@@ -460,13 +460,20 @@ def salvar_jogo(estado):
         print(f"{DOS_AMARELO}Você não pode salvar o jogo durante um evento crítico!{RESET}")
         pausar(2)
         return False
+        
+    if "disquete" not in estado.inventario:
+        print(f"{DOS_VERMELHO}ACESSO NEGADO: Você precisa de um 'disquete' na mochila para salvar.{RESET}")
+        pausar(2)
+        return False
     
     try:
         dados = copy.deepcopy(estado.__dict__)
         dados['minigame_atual'] = None 
         with open("save_villasboas.json", "w", encoding="utf-8") as f:
             json.dump(dados, f, ensure_ascii=False, indent=4)
-        print(f"{DOS_VERDE}💾 Jogo salvo com sucesso!{RESET}")
+            
+        estado.inventario.remove("disquete") # Consome o item!
+        print(f"{DOS_VERDE}💾 Jogo salvo com sucesso! O disquete foi consumido na leitura.{RESET}")
         pausar(1.5)
         return True
     except Exception as e:
