@@ -1441,9 +1441,12 @@ def processar_comando(comando, jogo, mapa):
         print("Outros: 'inventario' (ou 'i'), 'olhar' (ou 'o'), 'salvar', 'carregar'")
         pausar(2); return False
     elif comando == "inventario" or comando == "i":
-        if len(jogo.inventario) > 0: print(f"🎒 Seu inventário: {', '.join(jogo.inventario)}")
-        else: print("🎒 Seu inventário está vazio.")
-        pausar(2); return False 
+        if len(jogo.inventario) > 0: 
+            itens_inv = [f"{DOS_VERDE}{i}{RESET}" for i in jogo.inventario]
+            print(f"🎒 Seu inventário: {', '.join(itens_inv)}")
+        else: 
+            print("🎒 Seu inventário está vazio.")
+        pausar(2); return False
     elif comando == "olhar" or comando == "o":
         return False 
     elif comando == "cls" or comando == "limpar":
