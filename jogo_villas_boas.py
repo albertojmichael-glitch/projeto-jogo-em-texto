@@ -1471,7 +1471,7 @@ def atualizar_eventos_de_tempo(jogo):
             pausar(1.5)
     else:
         jogo.turnos_no_escuro += 1
-        if jogo.turnos_no_escuro == 3: print("\n👀 As shadows parecem se mexer nos cantos da sua visão...")
+        if jogo.turnos_no_escuro == 3: print("\n👀 As sombras parecem se mexer nos cantos da sua visão...")
         elif jogo.turnos_no_escuro == 5: print("\n Você escuta alguém sussurrando seu nome bem baixinho na escuridão...")
             
         chance_sombra = min(1 + (jogo.turnos_no_escuro * 2), 20) 
