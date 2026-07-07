@@ -791,7 +791,7 @@ class MinigameSeguranca:
             self.alberto_troll = False
         else: print("Comando inválido.")
         
-        pausar(1)
+        pausar(4)
 
         # ==========================================
         # EVENTOS DE FIM DE TURNO (MECÂNICAS ATIVAS)
