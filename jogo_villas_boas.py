@@ -1710,6 +1710,16 @@ if __name__ == "__main__":
                 else:
                     print("📦 Deve ter algo no chão, mas está escuro demais para ver o quê.")
 
+            # --- NOVA BÚSSOLA DE SAÍDAS ---
+            chaves_ignoradas = ["descrição", "itens", "inspecionaveis", "cofre_important", "cadeira"]
+            # Pega todas as chaves da sala que não estão na lista de ignoradas
+            saidas = [k for k in sala.keys() if k not in chaves_ignoradas and isinstance(sala[k], str)]
+            
+            if saidas:
+                print(f"🧭 Saídas: {DOS_AMARELO}{', '.join(saidas).title()}{RESET}")
+            else:
+                print(f"🧭 Saídas: {DOS_VERMELHO}Nenhuma saída aparente...{RESET}")
+
             print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
             print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
             
