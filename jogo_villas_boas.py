@@ -327,7 +327,7 @@ MAPA_ORIGINAL = {
         "itens": ["pedra"]
     },
     "sala 1": {
-        "descrição": "voce entra na sala de festas 1, está tudo parado e calmo. Há uma máquina de fliperama velha no canto.",
+        "descrição": "voce entra na sala de festas 1, está tudo parado e calmo. A uma sala de fliperamas a sua esquerda",
         "atrás": "duas salas de festas", 
         "frente": "palco",
         "direita": "sala 2",
@@ -401,7 +401,7 @@ descricoes_itens = {
     "tabua pequena de madeira": "Você passa a mão pela tábua, ela está velha, úmida, e cheia de farpas.",
     "tocha": "Você olha para a tábua com um papel procurando algo, mas não há nada.",
     "tocha acesa": "Você olha para a tocha acesa, parece que não vai durar muito pela umidade.",
-    "papel": "O papel tem letras borradas de sangue: 'O ano que tudo mudou... 1983'.",
+    "papel": "O papel tem letras borradas de sangue: '1985'.",
     "papel aceso": "Você enxerga muito mais pela luz laranja do fogo, mas está queimando rápido.",
     "tesoura": "Tesoura escolar sem ponta, de aço inox, deve servir para arrombar alguma porta.",
     "tesoura quebrada": "Tesoura escolar quebrada, o aço entortou e perdeu o corte, está inútil.",
@@ -414,18 +414,18 @@ descricoes_itens = {
     "fosforo": "Uma caixinha de fósforos quase vazia.",
     "garrafa vazia": "Uma garrafa de vinho suja.",
     "pedra": "Uma pedra comum e redonda. Pesada, fria e completamente inútil.",
-    "moeda velha": "Uma ficha de fliperama enferrujada de 1980.",
+    "moeda velha": "Uma ficha de fliperama enferrujada de 1982.",
     "chave da cozinha": "Uma chave prateada com um chaveiro sujo de graxa.",
-    "remedio": "Um frasco de analgésicos vencidos. Pode ajudar com a dor.",
+    "remedio": "Um frasco de relaxante muscular, venceu em 1996. Talvez ajude com a dor.",
     "pizza mofada": "Um pedaço de pizza de 1994. Tem uma cor verde fluorescente.",
-    "bateria nova": "Uma bateria industrial pesada. Vai recarregar a lanterna no máximo!",
+    "bateria nova": "Uma bateria industrial pesada. Cabe na sua lanterna",
     "recorte 1": "Pedaço de jornal de 1994: '...o cliente João Barros, desapareceu...' ",
     "recorte 2": "Parte central da notícia: '...a garçonete Ângela Silva vista pela última vez...' ",
-    "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis, afundou com o restaurante.'",
+    "recorte 3": "A base do jornal: '...o proprietário Renato Fidelis.'",
     "jornal completo": "Os três recortes unidos. Conta a história das três vítimas de 1994.",
-    "lanterna": "Sua lanterna velha de plástico. Ela ocupa espaço na mochila e não pode ser largada.",
+    "lanterna": "Sua lanterna velha de plástico vermelha, você esqueceu de trocar a bateria antes de sair de casa.",
     "disquete": "Um disquete de 5¼ polegadas. Serve para salvar os dados do sistema no terminal.",
-    "fita isolante": "Um rolo de fita preta grossa. A cola ainda serve."
+    "fita isolante": "Um rolo de fita preta grossa. A cola ainda deve servir."
 }
 
 # ==========================================
@@ -460,7 +460,7 @@ jogo = GameState()
 
 def salvar_jogo(estado):
     if estado.minigame_atual is not None:
-        print(f"{DOS_AMARELO}Você não pode salvar o jogo durante um evento crítico!{RESET}")
+        print(f"{DOS_AMARELO}Você não pode salvar o jogo durante um evento!{RESET}")
         pausar(2)
         return False
         
@@ -476,7 +476,7 @@ def salvar_jogo(estado):
             json.dump(dados, f, ensure_ascii=False, indent=4)
             
         estado.inventario.remove("disquete") # Consome o item!
-        print(f"{DOS_VERDE}💾 Jogo salvo com sucesso! O disquete foi consumido na leitura.{RESET}")
+        print(f"{DOS_VERDE}Jogo salvo. O disquete foi consumido na leitura.{RESET}")
         pausar(1.5)
         return True
     except Exception as e:
@@ -494,7 +494,7 @@ def carregar_jogo(estado):
             dados = json.load(f)
         for key, value in dados.items():
             setattr(estado, key, value)
-        print(f"{DOS_VERDE}💾 Jogo carregado com sucesso! Bem-vindo de volta.{RESET}")
+        print(f"{DOS_VERDE}💾 Jogo carregado.{RESET}")
         pausar(2)
         return True
     except Exception as e:
@@ -515,10 +515,10 @@ class MinigameMinotauro:
         self.bateria = 15 # Limite de turnos novo!
         
         print("\n" + "="*50)
-        print("Você entra na Sala de Energia... e a porta bate com força atrás de você!")
+        print("Você entra na Sala de Energia... e a porta bate com força")
         pausar(2)
-        print("Você escuta uma respiração pesada. Um labirinto invisível se forma.")
-        print("O MINOTAURO ESTÁ AQUI.")
+        print("Você escuta uma respiração pesada.")
+        print("Ele está aqui.")
         pausar(2)
 
     def imprimir_status(self):
@@ -534,16 +534,16 @@ class MinigameMinotauro:
             if random.random() < 0.2:
                 print("⚠️ Os ecos do labirinto te confundem... não dá pra saber de onde o som vem!")
             else:
-                if self.mx < self.px: print("⚠️ Você sente uma presença sombria à sua ESQUERDA.")
-                elif self.mx > self.px: print("⚠️ Você sente uma presença terrível à sua DIREITA.")
-                elif self.my > self.py: print("⚠️ Você sente uma presença bem na sua FRENTE.")
-                elif self.my < self.py: print("⚠️ Você sente uma respiração quente logo ATRÁS de você!")
+                if self.mx < self.px: print("⚠️ Você sente um ar pesado em sua esquerda.")
+                elif self.mx > self.px: print("⚠️ Você enxerga um vulto a sua direita.")
+                elif self.my > self.py: print("⚠️ Você voce não enxerga nada a sua frente, uma mancha negra cobre sua visão do fundo da sala.")
+                elif self.my < self.py: print("⚠️ passos pesados são ouvidos atrás de você")
 
         opcoes = "ir frente | ir esquerda | ir direita | esperar"
         if self.px == 0 and self.py == 3:
-            print("⚡ Você encontrou a caixa de fusíveis na parede central!")
+            print("⚡ Você encontrou a caixa de fusíveis na parede central")
             if self.tesoura_chao:
-                print("🛠️ Há uma tesoura caída no chão.")
+                print("Há uma tesoura caída no chão.")
                 opcoes += " | pegar tesoura"
             opcoes += " | cortar fios"
         print(f"\n[{opcoes}]")
@@ -567,38 +567,40 @@ class MinigameMinotauro:
         
         if acao == "ir esquerda":
             if self.px > -1: self.px -= 1
-            else: print("BAM! Você bate a cara na parede..."); turno_gasto = True
+            else: print("Você bate a cara na parede..."); turno_gasto = True
         elif acao == "ir direita":
             if self.px < 1: self.px += 1
-            else: print("BAM! Você bate a cara na parede..."); turno_gasto = True
+            else: print("Você bate a cara na parede..."); turno_gasto = True
         elif acao == "ir frente":
             if self.py < 3: self.py += 1
-            else: print("BAM! Você bateu na parede do fundo..."); turno_gasto = True
+            else: print("Você bateu na parede do fundo..."); turno_gasto = True
         elif acao == "esperar": 
             print("Você fica imóvel aguardando..."); turno_gasto = True
         elif acao == "pegar tesoura":
             if self.px == 0 and self.py == 3 and self.tesoura_chao:
                 jogo.inventario.append("tesoura"); self.tesoura_chao = False
-                print("Você guarda a tesoura na mochila. O som metálico ecoa alto no escuro!")
+                print("Você sem querer derruba a tesoura no chão, fazendo um barulho estridente, você guarda rapidamente na sua bolsa")
                 self.mover_minotauro() # Atrai o monstro na mesma hora!
                 turno_gasto = True
             else: print("Não tem tesoura aqui.")
         elif acao == "cortar fios":
             if self.px == 0 and self.py == 3:
                 if "tesoura" in jogo.inventario:
-                    print("✂️ Você corta os fios principais! Faíscas voam e o sistema desliga.")
+                    print("Você corta os fios principais e os guarda em sua bolsa")
                     self.fios_cortados = True
                     jogo.fios_cortados_inventario = True
                     pausar(2)
                     return "vitoria_minotauro"
-                else: print("Você precisa de uma ferramenta!")
+                else: print("Você precisa de uma ferramenta")
                 turno_gasto = True
-            else: print("Você não está nos fusíveis!"); turno_gasto = True
+            else: print("Você não está nos fusíveis"); turno_gasto = True
         else: print("Ação inválida no momento.")
 
         # Verifica morte após jogador se mover
         if not self.fios_cortados and self.px == self.mx and self.py == self.my:
-            print("\n💀 Você esbarrou direto na carcaça de metal do Minotauro!")
+            print("\n Você sente sua visão borrar, enquanto os olhos vermelhos te encaram, voce não sente mais nada.")
+            pausar(2)
+            print("\n No vazio, você morre sozinho, sem poder salvar ninguem. ")
             pausar(2)
             return "morte"
 
@@ -606,7 +608,9 @@ class MinigameMinotauro:
         if turno_gasto and not self.fios_cortados:
             self.bateria -= 1
             if self.bateria <= 0:
-                print("\n🔌 A sua lanterna pisca e apaga de vez. No escuro total, duas mãos gigantes te agarram...")
+                print("\n A sua lanterna apaga, você entra em desespero e começa a bater na parte da bateria, fazendo barulho.")
+                pausar(2)
+                print("\n Você sente uma mão atravessando seu estomago por trás, não há nada a se fazer")
                 pausar(2)
                 return "morte"
                 
@@ -615,7 +619,7 @@ class MinigameMinotauro:
                 self.mover_minotauro()
                 
             if self.px == self.mx and self.py == self.my:
-                print("\n💀 O Minotauro te encontrou no escuro. Mãos frias de metal te rasgam...")
+                print("\n o minotauro te encontrou no escuro. Mãos frias de metal te rasgam por inteiro")
                 pausar(2)
                 return "morte"
                 
@@ -682,7 +686,7 @@ class MinigameSeguranca:
                 self.energia -= CUSTO_MOTOR
                 print(f"A pesada porta de metal desce com um estrondo. (-{CUSTO_MOTOR}% Energia)")
                 if self.alberto_troll:
-                    print("\nHAHA! Você caiu na pegadinha do Cozinheiro Alberto!")
+                    print("\n Como você é tão tolo? Hahahaha")
                     self.erro_camera = True; self.erro_deteccao = True; self.alberto_troll = False
 
         elif acao == "abrir porta":
@@ -697,17 +701,18 @@ class MinigameSeguranca:
             if self.apagao > 0 or self.energia <= CUSTO_INFO: print("Sem força nas luzes.")
             else:
                 self.energia -= CUSTO_INFO
-                print(f"🔦 Você joga a luz nos dutos! (-{CUSTO_INFO}% Energia)")
-                if self.jon_pos >= 4: self.jon_pos = 0; print("Jon recua apressado pelo metal!")
+                print(f"Você liga o projetor nos dutos (-{CUSTO_INFO}% Energia)")
+                if self.jon_pos >= 4: self.jon_pos = 0; print("Jon recua apressado pela tubulação")
                 if self.caroline_caminho == "tubulacao" and self.caroline_pos >= 5:
                     self.caroline_pos = 0; self.caroline_caminho = random.choice(["porta", "tubulacao"]) 
-                    print("A Caroline fugiu do duto!")
+                    print("A Caroline fugiu do duto")
 
         elif acao == "olhar vidro":
             if self.indio_janela:
                 limpar_tela() # Limpa a tela para a arte brilhar sozinha
-                print(f"{DOS_BRANCO}{ARTE_INDIO}{RESET}") # Imprime o rosto gigante
-                print("Você encara a figura macabra de Índio Jones colada no vidro... Falha no sistema!")
+                print(f"{DOS_BRANCO}{ARTE_INDIO}{RESET}") # Imprime o rosto
+                pausar(2)
+                print("Você não enxerga nada, até que 2 olhos te encaram pela janela, a figura do indio jones faz você perder a cabeça")
                 falha = random.choice(["camera", "relogio", "deteccao"])
                 if falha == "camera": self.erro_camera = True
                 elif falha == "relogio": self.erro_relogio = True
@@ -718,19 +723,19 @@ class MinigameSeguranca:
                 carol_na_porta = (self.caroline_caminho == "porta" and self.caroline_pos >= 5)
                 
                 if rick_na_porta and carol_na_porta:
-                    print("⚠️ O SANGUE GELA! Você vê a carcaça maciça de RICK e o corpo retorcido de CAROLINE")
-                    print("parados lado a lado no corredor, encarando sua alma através do vidro!")
+                    print("⚠️ Seu corpo treme. Você vê a carcaça maciça de Rick, o mosqueteiro e a carcaça de coelho rosa retorcido de Caroline")
+                    print("parados lado a lado no corredor, olhando diretamente para você através do vidro")
                 elif rick_na_porta:
-                    print("⚠️ Você olha pelo vidro e vê a silhueta gigantesca do urso RICK parado nas sombras.")
+                    print("⚠️ Você olha pelo vidro e vê a silhueta gigantesca do Rick, o mosqueteiro, parado nas sombras.")
                     print("Os olhos de plástico sem vida dele estão focados em você.")
                 elif carol_na_porta:
-                    print("⚠️ Através da sujeira do vidro, o rosto quebrado de CAROLINE desponta na escuridão.")
-                    print("Ela está encostada na parede do corredor, sorrindo para você...")
+                    print("⚠️ Através da sujeira do vidro, você enxerga a carcaça do coelho rosa tentando se esconder nas sombras.")
+                    print("Ela está encostada na parede do corredor")
                 else:
                     print("Você limpa o embaçado do vidro e força a vista para o corredor escuro.")
                     print("Consegue distinguir as portas fechadas das outras salas, os cartazes rasgados nas paredes")
                     print("e o chão de linóleo imundo refletindo a pouca luz que resta.")
-                    print("Nenhum movimento... Além das sombras, há apenas o seu reflexo assustado devolvendo o olhar.")
+                    print("Nenhum movimento... Além das sombras, há apenas o seu reflexo devolvendo o olhar.")
 
         elif acao.startswith("consertar "):
             sistema = acao.replace("consertar ", "")
@@ -748,10 +753,10 @@ class MinigameSeguranca:
                 print(f"(-{CUSTO_INFO}% Energia)")
                 ouviu = False
                 if self.rick_pos >= 3 or (self.caroline_caminho == "porta" and self.caroline_pos >= 5):
-                    print("🎧 Passos metálicos pesados no corredor!"); ouviu = True
+                    print(" Passos metálicos pesados no corredos são ouvidos do corredor"); ouviu = True
                 if self.jon_pos >= 4 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 5):
-                    print("🎧 Um arranhar agudo na tubulação!"); ouviu = True
-                if not ouviu: print("🎧 Apenas o zumbido do ar-condicionado.")
+                    print(" Você escuta arranhos e batidas vindo da tubulação"); ouviu = True
+                if not ouviu: print("Apenas o zumbido dos fios eletricos e da lampada quase apagada.")
 
         elif acao == "cameras":
             if self.apagao > 0 or self.erro_camera: print("📺 [SINAL PERDIDO]")
@@ -767,7 +772,7 @@ class MinigameSeguranca:
                     print(f"Jon: Setor {random.randint(0,5)}/5 (???)")
                 else:
                     print(f"\n--- FEED DAS CÂMERAS ---\nRick: Setor {self.rick_pos}/4")
-                    print(f"Jon: Setor {self.jon_pos}/5" if self.jon_pos < 3 else "Jon: [Nos dutos cegos]")
+                    print(f"Jon: Setor {self.jon_pos}/5" if self.jon_pos < 3 else "Jon: [não é visivel nas cameras]")
                 print("------------------------")
 
         elif acao == "ver tubulacao":
@@ -776,8 +781,8 @@ class MinigameSeguranca:
             else:
                 self.energia -= CUSTO_INFO
                 print(f"(-{CUSTO_INFO}% Energia)")
-                if self.jon_pos >= 3 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 4): print("🔴 Sensor apita! Movimento nos dutos!")
-                else: print("🟢 Sensor limpo.")
+                if self.jon_pos >= 3 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 4): print("🔴 Sensor fica vermelho, há um movimento nos dutos.")
+                else: print("🟢 Sensor não detecta nada")
 
         elif acao == "esperar":
             print("Você deixa o tempo passar...")
@@ -805,11 +810,11 @@ class MinigameSeguranca:
             if self.porta_fechada:
                 if self.rick_pos == 4: 
                     self.rick_pos = 0 
-                    print("\n💥 Algo soca a porta violentamente e recua!")
+                    print("\n Você escuta batidas na porta, e passos para fora do corredor logo depois.")
                 if self.caroline_caminho == "porta" and self.caroline_pos >= 5:
                     self.caroline_pos = 0
                     self.caroline_caminho = random.choice(["porta", "tubulacao"])
-                    print("\n💥 Um estrondo na porta. A Caroline recuou frustrada.")
+                    print("\n Você escuta um estrondo na porta, e depois passos apressados para a sala de jantar.")
 
             # Condições de Ataque
             rick_ataque = (self.rick_pos >= 4) or (self.rick_pos == 3 and random.random() < 0.3)
@@ -818,14 +823,14 @@ class MinigameSeguranca:
             jon_ataque = (self.jon_pos >= 5)
             
             if (rick_ataque and not self.porta_fechada) or (carol_porta_ataque and not self.porta_fechada) or jon_ataque or carol_duto_ataque:
-                print("\n💀 GAME OVER")
+                print("\n Um animatronico conseguiu entrar.")
                 pausar(2)
                 return "morte"
             
             # --- O "FATOR TÉDIO" (Nova mecânica de recuo) ---
             if self.rick_pos == 3 and not self.porta_fechada and random.random() < 0.25:
-                self.rick_pos = 1 # O Rick farta-se e afasta-se
-                print("🎧 Ouves passos pesados a afastarem-se da porta...")
+                self.rick_pos = 1 
+                print(" Ouve passos pesados a se afastar da porta")
             else:
                 furia_atual = self.furia + (self.turno // 6) 
                 if self.rick_pos < 3: 
@@ -848,10 +853,10 @@ class MinigameSeguranca:
         # ==========================================
         if self.turno >= 24:
             limpar_tela()
-            digitar("🔔 DONG... DONG... 06:00 AM!", 0.03, DOS_BRANCO)
+            digitar("Você se sente aliviado quando a luz do sol começa a invadir a janela do restaurante, e o relogio marca pontualmente '06:00' ", 0.03, DOS_BRANCO)
             pausar(2)
             digitar("O sol começa a nascer. A energia retorna aos poucos.", 0.03, DOS_BRANCO)
-            digitar("Você sobreviveu à noite! A porta da sala destranca.", 0.03, DOS_BRANCO)
+            digitar("A porta da sala destranca.", 0.03, DOS_BRANCO)
             
             jogo.mapa["sala de jantar"]["descrição"] = "A luz da manhã invade as janelas sujas."
             jogo.mapa["hall de entrada"]["descrição"] = "O hall está iluminado."
@@ -865,7 +870,7 @@ class MinigameSeguranca:
                 digitar("\nVocê saca o dispositivo.", 0.03, DOS_AMARELO)
                 print(f"{DOS_VERDE}{radar}{RESET}")
                 pausar(1)
-                digitar("[DISPOSITIVO]: PRESENÇA DETECTADA.", 0.03, DOS_VERDE)
+                digitar("[DISPOSITIVO]: PRESENÇA ULTERIOR DETECTADA.", 0.03, DOS_VERDE)
                 digitar("Ela ainda está aqui...\n", 0.04, DOS_AMARELO)
                 pausar(3)
             return "vitoria_seguranca"
