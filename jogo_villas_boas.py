@@ -801,10 +801,10 @@ class MinigameSeguranca:
             # DRENO CONTÍNUO DA PORTA (Balanceado de 5 para 2)
             if self.porta_fechada and self.energia > 0:
                 self.energia -= 2
-                print("⚡ A pesada porta de metal consome energia contínua... (-2% Energia)")
+                print(" A pesada porta de metal consome energia contínua... (-2% Energia)")
 
             if self.energia <= 0 and self.apagao == 0:
-                print("\n🔋 [ ENERGIA ESGOTADA ] Tudo fica escuro. A porta abre sozinha...")
+                print("\n [ ENERGIA ESGOTADA ] Tudo fica escuro. A porta abre sozinha...")
                 self.porta_fechada = False; self.apagao = 1; pausar(2)
 
             if self.porta_fechada:
@@ -908,11 +908,13 @@ def cmd_ir(comando, jogo, mapa):
             jogo.turnos_mesma_sala = 0
 
             if jogo.turnos_luz <= 0 and random.randint(1, 100) <= 10:
-                print("\n😵 No escuro total, você perde a noção de direção, tropeça e cai duro no chão!")
+                print("\n No escuro, você perde a noção da direção, e acaba tropeçando no proprio pé, e cai no chão")
                 jogo.hp -= 1
-                print(f"🩸 Você se machucou na queda. (HP: {jogo.hp})")
+                print(f" Você se machucou na queda. (HP: {jogo.hp})")
                 pausar(2)
                 if jogo.hp <= 0:
+                    print("\n Você cai no chão e quebra sua perna, você não consegue mais andar, e escuta barulhos vindo na sua direção")
+                    pausar(2)
                     jogo.sala_atual = "morte"
                 return 
 
@@ -957,11 +959,11 @@ def cmd_pegar(comando, jogo, mapa):
                 pausar(1.5)
                 return 
             elif chance <= 40:
-                print(f"{DOS_VERMELHO}🩸 Ai! Você tateou um pedaço de vidro afiado no escuro!{RESET}")
+                print(f"{DOS_VERMELHO}Você se machuca com um pedaço de vidro afiado no escuro, está sangrando muito.{RESET}")
                 jogo.hp -= 1
                 pausar(1.5)
                 if jogo.hp <= 0:
-                    print(f"{DOS_VERMELHO}Você sangrou até desmaiar na escuridão...{RESET}")
+                    print(f"{DOS_VERMELHO}Você sangrou até desmaiar, caindo no chão e perdendo a consciencia.{RESET}")
                     jogo.sala_atual = "morte"
                 return 
                     
@@ -1024,9 +1026,9 @@ def cmd_examinar(comando, jogo, mapa):
         print(f"\n🔎 {descricoes_itens.get(item_inventario, 'Não há nada de especial nisso.')}")
         if item_inventario == "tabua pequena de madeira":
             jogo.hp -= 1
-            print(f"🩸 Ai! Você se machucou nas farpas. Perdeu 1 HP! (HP: {jogo.hp})")
+            print(f"Você se machucou nas farpas. (HP: {jogo.hp})")
             if jogo.hp <= 0:
-                print("Você sangrou demais na escuridão...")
+                print("Você sangrou até desmaiar, caindo no chão e perdendo a consciencia.")
                 jogo.sala_atual = "morte"
         pausar(2)
     else:
@@ -1059,9 +1061,9 @@ def cmd_combinar(comando, jogo):
         if all(r in jogo.inventario for r in ["recorte 1", "recorte 2", "recorte 3"]):
             for r in ["recorte 1", "recorte 2", "recorte 3"]: jogo.inventario.remove(r)
             jogo.inventario.append("jornal completo")
-            print(f"{DOS_VERDE}📰 Você juntou os recortes! Formou o 'jornal completo'.{RESET}")
+            print(f"{DOS_VERDE} Você juntou os recortes, formando o 'jornal completo'.{RESET}")
         else:
-            print(f"{DOS_AMARELO}Você não tem os 3 recortes necessários na mochila.{RESET}")
+            print(f"{DOS_AMARELO}Você não tem os recortes necessários na mochila.{RESET}")
         pausar(2)
         return
 
@@ -1072,7 +1074,7 @@ def cmd_combinar(comando, jogo):
             if ("tabua pequena de madeira" in partes) and ("papel" in partes):
                 jogo.inventario.remove("tabua pequena de madeira"); jogo.inventario.remove("papel")
                 jogo.inventario.append("tocha")
-                print("🛠️ Você enrolou o papel na tábua. Criou uma 'tocha' (apagada).")
+                print("Você enrolou o papel na tábua. Criou uma 'tocha' (apagada).")
             elif ("tocha" in partes) and ("isqueiro" in partes):
                 if jogo.isqueiro_usos > 0:
                     jogo.isqueiro_usos -= 1
@@ -1085,12 +1087,12 @@ def cmd_combinar(comando, jogo):
                     jogo.isqueiro_usos -= 1
                     jogo.inventario.remove("papel"); jogo.inventario.append("papel aceso")
                     jogo.turnos_luz = 1
-                    print(f"🔥 Você acendeu o papel. A chama vai queimar seus dedos em 1 turno! (Usos: {jogo.isqueiro_usos})")
-                else: print("O isqueiro não tem gás!")
+                    print(f" Você acendeu o papel. A chama vai queimar seus dedos rapidamente (Usos: {jogo.isqueiro_usos})")
+                else: print("O isqueiro não tem gás")
             elif ("tesoura quebrada" in partes) and ("fita isolante" in partes):
                 jogo.inventario.remove("tesoura quebrada"); jogo.inventario.remove("fita isolante")
                 jogo.inventario.append("tesoura")
-                print("🛠️ Você passou fita na tesoura e estabilizou as lâminas!")
+                print("Você passou fita na tesoura e estabilizou as lâminas!")
             else: print("Esses itens não parecem combinar.")
         else: print("Você não tem esses itens no inventário para tentar combinar.")
     else: print("Formato inválido. Use: 'combinar [item1] com [item2]'")
@@ -1117,16 +1119,16 @@ def cmd_usar(comando, jogo, mapa):
         if jogo.hp < 3:
             jogo.hp = min(3, jogo.hp + 2)
             jogo.inventario.remove("remedio")
-            print(f"💊 Você engole as pílulas secas. A dor diminui! (HP restaurado para {jogo.hp})")
+            print(f" Você engole as pílulas secas. A dor diminui (HP restaurado para {jogo.hp})")
         else: print("Você já está com a saúde máxima.")
         pausar(2)
     elif item == "pizza mofada":
         jogo.hp -= 1; jogo.turnos_enjoado = 4; jogo.inventario.remove("pizza mofada")
-        print(f"🤢 Você comeu isso?! Uma dor terrível te ataca! Perdeu 1 HP. (HP: {jogo.hp})")
+        print(f" Você comeu isso? Você vomita e seu estomago está doendo muito. (HP: {jogo.hp})")
         pausar(2)
     elif item == "bateria nova":
         jogo.turnos_luz = 10; jogo.inventario.remove("bateria nova")
-        print(f"{DOS_VERDE}💡 Você trocou as pilhas! A sua lanterna brilha com força total (10 turnos de luz).{RESET}")
+        print(f"{DOS_VERDE} Você conectou a bateria na sua lanterna, ela brilha com força total.{RESET}")
         pausar(2)
     elif item == "tesoura" and jogo.sala_atual == "corredor":
         print("Você usa a tesoura na fechadura emperrada da porta 03. O metal estala e a porta abre!")
@@ -1135,11 +1137,11 @@ def cmd_usar(comando, jogo, mapa):
         print("A tesoura quebrou com o esforço.")
         pausar(2)
     elif item == "fios cortados" and jogo.sala_atual == "sala do gerador":
-        print("\n🔥 Você joga os fios na fiação principal desencapada!")
-        print("UM CURTO-CIRCUITO GIGANTE! O painel explode e as chamas começam a lamber as paredes!")
+        print("\n Você joga os fios na fiação principal desencapada")
+        print(" O painel explode e as chamas começam a lamber as paredes")
         jogo.incendio = True
         jogo.inventario.remove("fios cortados")
-        mapa["entrada"]["descrição"] = "A porta! Está logo ali! O calor é insuportável!"
+        mapa["entrada"]["descrição"] = "A porta! Está logo ali!"
         mapa["corredor"]["descrição"] = "O corredor está em chamas! Fumaça preenche seus pulmões!"
         mapa["sala de jantar"]["descrição"] = "As mesas estão queimando, o teto está caindo!"
         pausar(3)
@@ -1158,7 +1160,7 @@ def cmd_usar(comando, jogo, mapa):
                 jogo.sala_atual = "morte"
         else: print("Você balança a luz, mas não há nada aqui... ainda.")
     elif item == "moeda velha" and jogo.sala_atual == "sala 1":
-        print("A moeda não faz nada aqui sozinha. Tente 'jogar consertos' na Sala de Fliperamas!")
+        print("A moeda não faz nada aqui sozinha. Tente ir na Sala de Fliperamas")
         pausar(2)
     elif item == "chave da cozinha" and jogo.sala_atual == "corredor":
         print("Você coloca a chave na fechadura da Sala 02. Ela gira com um 'clique' pesado.")
@@ -1357,12 +1359,12 @@ def cmd_jogar(comando, jogo):
         pausar(2)
         
         if pontos == 5:
-            digitar("VOCÊ É ELE. VOCÊ CONHECE A NOSSA DOR.", 0.08, DOS_VERDE)
+            digitar("Obrigado por voltar pela gente, Rogério...", 0.08, DOS_VERDE)
             if "bateria nova" not in jogo.inventario:
                 print(f"{DOS_BRANCO}A gaveta inferior abre. Você encontrou uma 'bateria nova'!{RESET}")
                 jogo.inventario.append("bateria nova")
         else:
-            digitar("VOCÊ É IGNORANTE COMO OS OUTROS.", 0.08, DOS_VERMELHO)
+            digitar("Quem é você?", 0.08, DOS_VERMELHO)
             print(f"{DOS_BRANCO}A tela desliga. Você perdeu sua chance de absolvição.{RESET}")
             
         jogo.turnos_luz -= 1
@@ -1411,6 +1413,8 @@ def processar_comando(comando, jogo, mapa):
                 print(f"{DOS_BRANCO}Você não tem armas. Suas mãos estão tremendo demais para lutar.{RESET}")
             elif verbo_bruto in ["chorar", "gritar", "socorro", "ajudem"]:
                 print(f"{DOS_BRANCO}Ninguém vai vir te ajudar. Você está sozinho aqui.{RESET}")
+            elif verbo_bruto in ["ir luz", "luz", "iluminar", "lanterna", "usar lanterna"]:
+                print(f"{DOS_BRANCO} Digitar isso não vai fazer nada, tente procurar uma fonte de luz")
             else:
                 print("Comando não reconhecido ou mal digitado. Digite 'ajuda' para ver a lista de ações.")
             pausar(1.5)
@@ -1475,40 +1479,41 @@ def atualizar_eventos_de_tempo(jogo):
         jogo.turnos_luz -= 1
         jogo.turnos_no_escuro = 0
         if jogo.turnos_luz == 0:
-            print("\n💨 A escuridão volta a dominar... Sua fonte de luz se apagou!")
+            print("\n A escuridão volta a dominar... Sua fonte de luz se apagou")
             pausar(1.5)
     else:
         jogo.turnos_no_escuro += 1
-        if jogo.turnos_no_escuro == 3: print("\n👀 As sombras parecem se mexer nos cantos da sua visão...")
+        if jogo.turnos_no_escuro == 3: print("\n As sombras parecem se mexer nos cantos da sua visão...")
         elif jogo.turnos_no_escuro == 5: print("\n Você escuta alguém sussurrando seu nome bem baixinho na escuridão...")
             
         chance_sombra = min(1 + (jogo.turnos_no_escuro * 2), 20) 
         if random.randint(1, 100) <= chance_sombra:
             print("\n" + "="*50)
             print("Na escuridão total, dois olhos brancos se abrem a centímetros do seu rosto.")
-            print("Homem das Sombras: 'Você não devia ter deixado a luz apagar...'")
+            print("'Você não devia ter voltado, Rogério.'")
             pausar(4)
             print("\n[ FINAL ???: MENTE FRATURADA ]")
             jogo.sala_atual = "morte"
 
     if jogo.incendio:
         jogo.turnos_fuga -= 1
-        print(f"\n🚨 O RESTAURANTE ESTÁ DESMORONANDO! ({jogo.turnos_fuga} turnos para fugir)")
+        print(f"\n O RESTAURANTE ESTÁ DESMORONANDO! ({jogo.turnos_fuga} turnos para fugir)")
         if jogo.turnos_fuga <= 0:
-            print("\n🔥 O teto desaba sobre você. O fogo consome o que restou.")
+            print("\n O teto desaba sobre você. O fogo consome o que restou.")
             jogo.sala_atual = "morte"
 
     if jogo.turnos_enjoado > 0:
-        print("\n🤢 Você está enjoado e com tontura... Seus olhos embaçam.")
+        print("\n Você está enjoado e com tontura... Seus olhos embaçam.")
         if jogo.turnos_luz > 0: jogo.turnos_luz -= 1
         jogo.turnos_enjoado -= 1
 
     if jogo.dificuldade_escolhida == "NORMAL":
         jogo.turnos_mesma_sala += 1
         if jogo.turnos_mesma_sala == jogo.turnos_perseguidor_aviso:
-            print("\n⚠️ Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
+            print("\n Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
         elif jogo.turnos_mesma_sala == jogo.turnos_perseguidor_morte:
             print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada!\n" + "="*50)
+            pausar(4)
             jogo.sala_atual = "morte"
             
     elif jogo.dificuldade_escolhida == "PESADELO":
@@ -1523,18 +1528,18 @@ def atualizar_eventos_de_tempo(jogo):
             
             if jogo.posicao_perseguidor == jogo.sala_atual:
                 print("\n" + "="*50)
-                print(f"{DOS_VERMELHO}A porta estilhaça! A criatura monstruosa de 2 metros te encontrou!{RESET}")
+                print(f"{DOS_VERMELHO}A porta quebra. Ela te encontrou{RESET}")
                 pausar(3)
                 jogo.sala_atual = "morte"
             else:
                 conexoes_jogador = [v for k, v in jogo.mapa[jogo.sala_atual].items() if k not in ["descrição", "itens", "inspecionaveis"] and isinstance(v, str)]
                 if jogo.posicao_perseguidor in conexoes_jogador:
-                    print(f"\n{DOS_AMARELO}⚠️ O chão vibra. Você ouve passos de puro metal maciço na sala ao lado...{RESET}")
+                    print(f"\n{DOS_AMARELO} O chão vibra. Você ouve passos de metal maciço na sala ao lado...{RESET}")
 
 def menu_inicial():
     limpar_tela()
-    digitar("VILLAS-BOAS INDUSTRIES (C) 1983", 0.01, DOS_BRANCO)
-    digitar("BIOS VERSION 1.04 - RELEASE 02/11/1983", 0.01, DOS_BRANCO)
+    digitar("VILLAS-BOAS INDUSTRIES (C) 1982", 0.01, DOS_BRANCO)
+    digitar("BIOS VERSION 1.04 - RELEASE 02/11/1982", 0.01, DOS_BRANCO)
     digitar("RAM CHECK: 640KB OK", 0.01, DOS_VERDE)
     digitar("DRIVE A: READY", 0.01, DOS_VERDE)
     digitar("CARREGANDO 'COMMAND.COM'....... OK\n", 0.05, DOS_VERDE)
@@ -1574,7 +1579,7 @@ def menu_inicial():
             jogo.furia_noite = 2                       
             jogo.dificuldade_escolhida = "PESADELO"
             break
-        elif opcao == "1983":
+        elif opcao == "1982":
             limpar_tela()
             digitar("[ ACESSO RESTRITO: NOITE CUSTOMIZADA ]", 0.03, DOS_VERMELHO)
             print("Defina a agressividade das máquinas.")
@@ -1609,9 +1614,9 @@ if __name__ == "__main__":
     pausar(1)
     print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
     print(f"{DOS_BRANCO}Você entra no restaurante. Sua lanterna velha dá três piscadas fracas...{RESET}")
-    pausar(2)
-    print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ EM ATÉ 3 TURNOS.{RESET}\n")
-    pausar(2)
+    pausar(3)
+    print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ.{RESET}\n")
+    pausar(3)
 
     while True:
         try:
@@ -1641,12 +1646,12 @@ if __name__ == "__main__":
             if jogo.sala_atual == "morte":
                 limpar_tela()
                 print(f"{DOS_VERMELHO}{CAVEIRA_MORTE}{RESET}")
-                print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
+                print(f"\n{DOS_VERMELHO}GAME OVER.{RESET}")
                 break
 
 
             elif jogo.sala_atual == "saida":
-                print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE: A IGNORÂNCIA É UMA BÊNÇÃO ]{RESET}")
+                print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE ]{RESET}")
                 break
                 
             elif jogo.sala_atual == "cama":
@@ -1705,7 +1710,7 @@ if __name__ == "__main__":
                 digitar("\n[DISPOSITIVO]: NENHUMA PRESENÇA DETECTADA.", 0.05, DOS_VERDE)
                 pausar(2)
                 digitar("Você se levanta e caminha para a saída antes que o teto desabe.", 0.05, DOS_BRANCO)
-                print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO: CINZAS DO PASSADO ]{RESET}")
+                print(f"\n{DOS_BRANCO}[ FINAL VERDADEIRO ]{RESET}")
                 break
 
             sala = jogo.mapa[jogo.sala_atual]
@@ -1729,9 +1734,9 @@ if __name__ == "__main__":
             if len(sala.get("itens", [])) > 0:
                 if jogo.turnos_luz > 0:
                     itens_formatados = [f"{DOS_VERDE}{item}{RESET}" for item in sala['itens']]
-                    print(f"📦 Itens no chão: {', '.join(itens_formatados)}")
+                    print(f" Itens no chão: {', '.join(itens_formatados)}")
                 else:
-                    print(f"📦 {DOS_BRANCO}Deve ter algo no chão, mas está escuro demais para ver o quê.{RESET}")
+                    print(f" {DOS_BRANCO}Deve ter algo no chão, mas está escuro demais para ver o quê.{RESET}")
 
             # --- NOVA BÚSSOLA DE SAÍDAS ---
             chaves_ignoradas = ["descrição", "itens", "inspecionaveis", "cofre_important", "cadeira"]
@@ -1739,9 +1744,9 @@ if __name__ == "__main__":
             saidas = [k for k in sala.keys() if k not in chaves_ignoradas and isinstance(sala[k], str)]
             
             if saidas:
-                print(f"🧭 Saídas: {DOS_AMARELO}{', '.join(saidas).title()}{RESET}")
+                print(f" Saídas: {DOS_AMARELO}{', '.join(saidas).title()}{RESET}")
             else:
-                print(f"🧭 Saídas: {DOS_VERMELHO}Nenhuma saída aparente...{RESET}")
+                print(f" Saídas: {DOS_VERMELHO}Nenhuma saída aparente...{RESET}")
 
             print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
             print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
