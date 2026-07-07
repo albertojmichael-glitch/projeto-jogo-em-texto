@@ -1282,7 +1282,7 @@ def cmd_jogar(comando, jogo):
         pausar(1)
         
         pontos = 0
-        tempo_limite = 15
+        tempo_limite = 20
         
         def fazer_pergunta_com_tempo(pergunta):
             print(f"\n{DOS_AMARELO}{pergunta}{RESET}")
