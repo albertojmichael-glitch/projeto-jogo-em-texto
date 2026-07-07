@@ -5,6 +5,7 @@ import os
 import unicodedata
 import copy
 import json # Adicionado para o sistema de Save/Load
+import difflib
 
 if sys.platform == "win32":
     os.system("color") 
@@ -1367,6 +1368,50 @@ def cmd_jogar(comando, jogo):
         pausar(2)
 
 def processar_comando(comando, jogo, mapa):
+    comando = comando.strip()
+    if not comando: return False
+
+    # 1. Atalhos de Direção e Omissão do verbo "ir"
+    mapa_direcoes = {
+        "f": "ir frente", "frente": "ir frente",
+        "t": "ir atrás", "tras": "ir atrás", "atras": "ir atrás", "atrás": "ir atrás",
+        "e": "ir esquerda", "esquerda": "ir esquerda",
+        "d": "ir direita", "direita": "ir direita"
+    }
+    if comando in mapa_direcoes:
+        comando = mapa_direcoes[comando]
+
+    # Separa a primeira palavra (verbo) do resto da frase
+    partes = comando.split(" ", 1)
+    verbo_bruto = partes[0]
+    resto = partes[1] if len(partes) > 1 else ""
+
+    # 2. Corretor Ortográfico de Verbos (Fuzzy Match)
+    verbos_validos = ["ir", "pegar", "largar", "usar", "combinar", "juntar", "examinar", "ex", "jogar", "abrir", "salvar", "carregar", "ajuda", "comandos", "inventario", "i", "olhar", "o", "cls", "limpar", "whoami", "sair"]
+    
+    if verbo_bruto not in verbos_validos:
+        # Tenta achar o verbo mais parecido (com pelo menos 60% de semelhança)
+        sugestoes = difflib.get_close_matches(verbo_bruto, verbos_validos, n=1, cutoff=0.6)
+        
+        if sugestoes:
+            verbo_corrigido = sugestoes[0]
+            comando = f"{verbo_corrigido} {resto}".strip()
+            print(f"{DOS_AMARELO}(Entendido como: '{comando}'){RESET}")
+            pausar(1)
+        else:
+            # 3. Respostas Temáticas para Ações de Desespero
+            if verbo_bruto in ["correr", "fugir", "escapar"]:
+                print(f"{DOS_BRANCO}Você está com muito medo, mas correr às cegas no escuro seria suicídio.{RESET}")
+            elif verbo_bruto in ["atacar", "bater", "chutar", "lutar"]:
+                print(f"{DOS_BRANCO}Você não tem armas. Suas mãos estão tremendo demais para lutar.{RESET}")
+            elif verbo_bruto in ["chorar", "gritar", "socorro", "ajudem"]:
+                print(f"{DOS_BRANCO}Ninguém vai vir te ajudar. Você está sozinho aqui.{RESET}")
+            else:
+                print("Comando não reconhecido ou mal digitado. Digite 'ajuda' para ver a lista de ações.")
+            pausar(1.5)
+            return False
+
+    # 4. Execução dos Comandos Padrão
     if comando.startswith("ir "):
         cmd_ir(comando, jogo, mapa); return True
     elif comando.startswith("pegar "):
@@ -1389,7 +1434,7 @@ def processar_comando(comando, jogo, mapa):
         carregar_jogo(jogo); return False
     elif comando == "ajuda" or comando == "comandos":
         print(f"\n{DOS_AMARELO}--- COMANDOS DO SISTEMA ---{RESET}")
-        print("Mover: 'ir [frente/atrás/esquerda/direita/sala/etc]'")
+        print("Mover: 'ir [frente/atrás/esquerda/direita/sala/etc]' (ou apenas 'f', 'atras', etc)")
         print("Itens: 'pegar [item]', 'largar [item]', 'usar [item]'")
         print("Ações: 'examinar [item/cenario]', 'combinar [item] com [item]'")
         print("Jogos: 'jogar [nome]', 'abrir cofre'")
@@ -1414,7 +1459,7 @@ def processar_comando(comando, jogo, mapa):
         print("Você desistiu de jogar...")
         sys.exit()
     else:
-        print("Comando inválido ou não reconhecido. Digite 'ajuda' para ver os comandos.")
+        print("Faltam informações no comando. (Ex: se digitou 'pegar', o que deseja pegar?) para ver os comandos, digite 'ajuda' ou 'comandos' ")
         pausar(1.5); return False
 
 def atualizar_eventos_de_tempo(jogo):
