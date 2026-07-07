@@ -4,7 +4,7 @@ import sys
 import os
 import unicodedata
 import copy
-import json # Adicionado para o sistema de Save/Load
+import json 
 import difflib
 
 if sys.platform == "win32":
