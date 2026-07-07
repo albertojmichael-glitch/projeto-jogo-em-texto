@@ -1704,11 +1704,26 @@ if __name__ == "__main__":
             print(f"📍 VOCÊ ESTÁ EM: {jogo.sala_atual.upper()}")
             print(f"👁️  Visão: {sala['descrição']}")
 
+            # --- COLORIR PALAVRAS-CHAVE NA DESCRIÇÃO ---
+            descricao_colorida = sala['descrição']
+            
+            # Pinta os itens inspecionáveis de Amarelo
+            for inspecionavel in sala.get("inspecionaveis", {}):
+                descricao_colorida = descricao_colorida.replace(inspecionavel, f"{DOS_AMARELO}{inspecionavel}{RESET}")
+            
+            # Pinta os itens pegáveis de Verde (caso apareçam na descrição)
+            for item in sala.get("itens", []):
+                descricao_colorida = descricao_colorida.replace(item, f"{DOS_VERDE}{item}{RESET}")
+                
+            print(f"👁️  Visão: {descricao_colorida}")
+
+            # --- COLORIR LISTA DE ITENS NO CHÃO ---
             if len(sala.get("itens", [])) > 0:
                 if jogo.turnos_luz > 0:
-                    print(f"📦 Itens no chão: {', '.join(sala['itens'])}")
+                    itens_formatados = [f"{DOS_VERDE}{item}{RESET}" for item in sala['itens']]
+                    print(f"📦 Itens no chão: {', '.join(itens_formatados)}")
                 else:
-                    print("📦 Deve ter algo no chão, mas está escuro demais para ver o quê.")
+                    print(f"📦 {DOS_BRANCO}Deve ter algo no chão, mas está escuro demais para ver o quê.{RESET}")
 
             # --- NOVA BÚSSOLA DE SAÍDAS ---
             chaves_ignoradas = ["descrição", "itens", "inspecionaveis", "cofre_important", "cadeira"]
