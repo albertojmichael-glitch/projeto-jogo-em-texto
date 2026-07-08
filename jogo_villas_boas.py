@@ -785,8 +785,15 @@ class MinigameSeguranca:
             else: print("Sistema não reconhecido.")
 
         elif acao == "ouvir":
-            if self.apagao > 0: print("No apagão, você ouve sua própria respiração...")
-            elif self.energia <= CUSTO_INFO_LEVE: print("Sistema de áudio offline (Bateria fraca).")
+            if self.apagao > 0: 
+                print("No apagão, você ouve sua própria respiração...")
+            
+            elif self.erro_deteccao: 
+                print(f"{DOS_VERMELHO}O alarme estridente de falha nos sensores ecoa na sala. Você não consegue ouvir nada além disso{RESET}")
+
+            elif self.energia <= CUSTO_INFO_LEVE: 
+                print("Sistema de áudio offline (Bateria fraca).")
+
             else:
                 self.energia -= CUSTO_INFO_LEVE
                 print(f"(-{CUSTO_INFO_LEVE}% Energia)")
@@ -952,7 +959,16 @@ class MinigameSeguranca:
                 elif self.rick_pos == 3: 
                     self.rick_pos += random.choice([0, 1])
 
-            self.jon_pos = min(5, self.jon_pos + random.choice([0, 1, 2]))
+            # --- O FRENESI DO PORCO JON ---
+            if self.erro_deteccao:
+                # Com os sensores offline, o ultrassom desliga e Jon corre alucinado
+                passos_jon = random.choice([1, 2, 3])
+                self.jon_pos = min(5, self.jon_pos + passos_jon)
+            else:
+                # Movimentação normal
+                self.jon_pos = min(5, self.jon_pos + random.choice([0, 1, 2]))
+                
+            
             self.caroline_pos = min(6, self.caroline_pos + random.choice([0, 1, 2, 3]))
             
             if self.turno >= 12 and (self.turno >= 20 or random.randint(1, 100) > 70): self.indio_janela = True
