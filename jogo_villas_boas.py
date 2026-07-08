@@ -641,6 +641,10 @@ class MinigameSeguranca:
         self.indio_janela = False
         self.alberto_troll = False
         self.furia = jogo.furia_noite
+
+        #nova mecanica do gerador
+        self.gerador_reserva_usado = False
+        self.turnos_gerador_ativo = 0
         
         print("\n" + "="*50)
         print("Você senta na cadeira da sala de segurança.")
@@ -668,10 +672,17 @@ class MinigameSeguranca:
         if self.erro_deteccao: erros.append("DETECÇÃO")
         print(f"ERROS ATIVOS: {', '.join(erros)}" if erros else bug("ERROS: Nenhum", chance_bug))
 
+
+        #status do gerador reserva
+        if self.turnos_gerador_ativo > 0:
+            print(f"{DOS_VERDE}Gerador reserva: Ativo({self.turnos_gerador_ativo} turnos restantes){RESET}")
+        elif not self.gerador_reserva_usado:
+            print(f"{DOS_AMARELO}Gerador Reserva: Disponível{RESET}")
+
         if self.alberto_troll: print("\n[MENSAGEM]: ERRO CRÍTICO! FECHAR PORTA AGORA!")
         if self.indio_janela and not self.erro_deteccao: print("\n" + bug("Você sente como se algo estivesse te olhando pelo vidro...", chance_bug))
 
-        print("\nAção (ouvir | cameras | ver tubulacao | iluminar tubulacao | fechar porta | abrir porta | olhar vidro | consertar [sistema] | esperar)")
+        print("\nAção (ouvir | cameras | ver tubulacao | iluminar tubulacao | fechar porta | abrir porta | olhar vidro | Ligar Gerador | consertar [sistema] | esperar)")
 
     def processar_turno(self, acao, jogo):
         turno_passou = False
@@ -681,12 +692,13 @@ class MinigameSeguranca:
 
         #nova mecanica
         custo_extra = 0 
-        if self.turno >= 22:
+        if self.turno >= 22: # 05:30 am
             custo_extra >= 3
-        elif self.turno >= 12:
+        elif self.turno >= 12: # 3:00 am
             custo_extra = 1
         
-        CUSTO_INFO = 1 + custo_extra
+        CUSTO_INFO_LEVE = 0 if self.turnos_gerador_ativo > 0 else ( 1+ custo_extra)
+        CUSTO_INFO_PESADO = 1 + custo_extra
         CUSTO_MOTOR = 2 + custo_extra
 
 
@@ -710,10 +722,10 @@ class MinigameSeguranca:
                 print(f"A porta de metal se ergue lentamente. (-{CUSTO_MOTOR}% Energia)")
 
         elif acao == "iluminar tubulacao":
-            if self.apagao > 0 or self.energia <= CUSTO_INFO: print("Sem força nas luzes.")
+            if self.apagao > 0 or self.energia <= CUSTO_INFO_PESADO: print("Sem força nas luzes.")
             else:
-                self.energia -= CUSTO_INFO
-                print(f"Você liga o projetor nos dutos (-{CUSTO_INFO}% Energia)")
+                self.energia -= CUSTO_INFO_PESADO
+                print(f"Você liga o projetor nos dutos (-{CUSTO_INFO_PESADO}% Energia)")
                 if self.jon_pos >= 4: self.jon_pos = 0; print("Jon recua apressado pela tubulação")
                 if self.caroline_caminho == "tubulacao" and self.caroline_pos >= 5:
                     self.caroline_pos = 0; self.caroline_caminho = random.choice(["porta", "tubulacao"]) 
@@ -735,13 +747,13 @@ class MinigameSeguranca:
                 carol_na_porta = (self.caroline_caminho == "porta" and self.caroline_pos >= 5)
                 
                 if rick_na_porta and carol_na_porta:
-                    print("⚠️ Seu corpo treme. Você vê a carcaça maciça de Rick, o mosqueteiro e a carcaça de coelho rosa retorcido de Caroline")
+                    print(" Seu corpo treme. Você vê a carcaça maciça de Rick, o mosqueteiro e a carcaça de coelho rosa retorcido de Caroline")
                     print("parados lado a lado no corredor, olhando diretamente para você através do vidro")
                 elif rick_na_porta:
-                    print("⚠️ Você olha pelo vidro e vê a silhueta gigantesca do Rick, o mosqueteiro, parado nas sombras.")
+                    print(" Você olha pelo vidro e vê a silhueta gigantesca do Rick, o mosqueteiro, parado nas sombras.")
                     print("Os olhos de plástico sem vida dele estão focados em você.")
                 elif carol_na_porta:
-                    print("⚠️ Através da sujeira do vidro, você enxerga a carcaça do coelho rosa tentando se esconder nas sombras.")
+                    print(" Através da sujeira do vidro, você enxerga a carcaça do coelho rosa tentando se esconder nas sombras.")
                     print("Ela está encostada na parede do corredor")
                 else:
                     print("Você limpa o embaçado do vidro e força a vista para o corredor escuro.")
@@ -749,6 +761,21 @@ class MinigameSeguranca:
                     print("e o chão de linóleo imundo refletindo a pouca luz que resta.")
                     print("Nenhum movimento... Além das sombras, há apenas o seu reflexo devolvendo o olhar.")
 
+        
+        elif acao == "Ligar gerador":
+            if self.apagao >0:
+                print("Tarde demais, o sistema principal já foi totalmente desligado")
+            elif self.gerador_reserva_usado:
+                print("O combustivel do gerador reserva já foi queimado, ele só pode ser usado uma vez")
+            else:
+                print(f"\n{DOS_VERDE} Você aperta o botão do gerador reserva, ele cospe uma fumaça preta, sistemas basicos operando sem custo de energia.{RESET}")
+                self.gerador_reserva_usado = True
+                self.turnos_gerador_ativo = 2
+                turno_passou = True
+                self.turno += 1
+                self.alberto_troll = False
+        
+        
         elif acao.startswith("consertar "):
             sistema = acao.replace("consertar ", "")
             if self.apagao > 0: print("Não há energia.")
@@ -759,10 +786,10 @@ class MinigameSeguranca:
 
         elif acao == "ouvir":
             if self.apagao > 0: print("No apagão, você ouve sua própria respiração...")
-            elif self.energia <= CUSTO_INFO: print("Sistema de áudio offline (Bateria fraca).")
+            elif self.energia <= CUSTO_INFO_LEVE: print("Sistema de áudio offline (Bateria fraca).")
             else:
-                self.energia -= CUSTO_INFO
-                print(f"(-{CUSTO_INFO}% Energia)")
+                self.energia -= CUSTO_INFO_LEVE
+                print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 ouviu = False
                 if self.rick_pos >= 3 or (self.caroline_caminho == "porta" and self.caroline_pos >= 5):
                     print(" Passos metálicos pesados no corredos são ouvidos do corredor"); ouviu = True
@@ -772,14 +799,14 @@ class MinigameSeguranca:
 
         elif acao == "cameras":
             if self.apagao > 0 or self.erro_camera: print("📺 [SINAL PERDIDO]")
-            elif self.energia <= CUSTO_INFO: print("Câmeras offline (Bateria fraca).")
+            elif self.energia <= CUSTO_INFO_LEVE: print("Câmeras offline (Bateria fraca).")
             else:
-                self.energia -= CUSTO_INFO
-                print(f"(-{CUSTO_INFO}% Energia)")
+                self.energia -= CUSTO_INFO_LEVE
+                print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 
                 chance_bug_visual = self.caroline_pos * 10
                 if random.randint(1, 100) <= chance_bug_visual:
-                    print("📺 [SINAL COM INTERFERÊNCIA] Imagens distorcidas...")
+                    print(" [SINAL COM INTERFERÊNCIA] Imagens distorcidas...")
                     print(f"Rick: Setor {random.randint(0,4)}/4 (???)")
                     print(f"Jon: Setor {random.randint(0,5)}/5 (???)")
                 else:
@@ -794,10 +821,10 @@ class MinigameSeguranca:
 
         elif acao == "ver tubulacao":
             if self.apagao > 0 or self.erro_deteccao: print("🔴 [SENSORES OFFLINE]")
-            elif self.energia <= CUSTO_INFO: print("Sensores offline (Bateria fraca).")
+            elif self.energia <= CUSTO_INFO_LEVE: print("Sensores offline (Bateria fraca).")
             else:
-                self.energia -= CUSTO_INFO
-                print(f"(-{CUSTO_INFO}% Energia)")
+                self.energia -= CUSTO_INFO_LEVE
+                print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 if self.jon_pos >= 3 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 4): print("🔴 Sensor fica vermelho, há um movimento nos dutos.")
                 else: print("🟢 Sensor não detecta nada")
 
@@ -871,6 +898,12 @@ class MinigameSeguranca:
         # EVENTOS DE FIM DE TURNO (MECÂNICAS ATIVAS)
         # ==========================================
         if turno_passou:
+
+            #GERADOR
+            if self.turnos_gerador_ativo > 0 and acao != "ligar gerador":
+                self.turnos_gerador_ativo -= 1
+                if self.turnos_gerador_ativo == 0:
+                    print(f"\n{DOS_AMARELO} O gerador reserva para de soltar fumaça, e começa a dar gargalos, e depois deliga. A energia volta a ser drenada normalmente{RESET}")
 
             #aviso do sistema de energia
             if self.turno == 12:
