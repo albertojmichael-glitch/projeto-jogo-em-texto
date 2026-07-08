@@ -675,6 +675,7 @@ class MinigameSeguranca:
 
     def processar_turno(self, acao, jogo):
         turno_passou = False
+        acao_valida = True
         CUSTO_INFO = 1    # Custo leve para obter informação
         CUSTO_MOTOR = 2   # Custo para acionar o motor da porta
 
@@ -789,7 +790,45 @@ class MinigameSeguranca:
             turno_passou = True
             self.turno += 1
             self.alberto_troll = False
-        else: print("Comando inválido.")
+        else:
+            print("Comando inválido.")
+            acao_valida = False
+
+        # nova mecanica foda
+        if acao_valida and acao != "esperar":
+            #chance de 10%
+            if random.random() <= 0.10:
+                quem = random.choice (["rick", "jon", "caroline"])
+                if quem == "rick": self.rick_pos += 1
+                elif quem == "jon": self.jon_pos += 1
+                elif quem == "caroline": self.caroline_pos += 1
+                print(f"\n {DOS_VERMELHO} você escuta passos apressados enquanto você mexia no sistema. {RESET}")
+
+            #check da morte
+            rick_ataque = (self.rick_pos >= 4)
+            carol_porta = (self.caroline_caminho == "porta" and self.caroline_pos >= 6 )
+            carol_duto = (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 6)
+            jon_ataque = (self.jon_pos >= 5)
+
+            if (rick_ataque and not self.porta_fechada) or (carol_porta and not self.porta_fechada) or jon_ataque or carol_duto:
+                print(f"\n{DOS_VERMELHO} Um animatronico invadiu a sala enquanto você usava o sistema{RESET}")
+                pausar(2)
+                return "morte"
+
+            #defesa imediata
+            if self.porta_fechada:
+                if self.rick_pos >= 4:
+                    self.rick_pos = 0
+                    print(f"{DOS_VERMELHO} Você escuta toques na porta, e passos recuando{RESET}")
+
+                if carol_porta:
+                    self.caroline_pos = 0
+                    self.caroline_caminho = random.choice (["porta", "tubulacao"])
+                    print(f"\n{DOS_AMARELO} Você ouve um batidas violentas na porta, e passos indo embora.{RESET}")
+        
+
+
+        
         
         pausar(4)
 
@@ -1497,7 +1536,7 @@ def atualizar_eventos_de_tempo(jogo):
 
     if jogo.incendio:
         jogo.turnos_fuga -= 1
-        print(f"\n O RESTAURANTE ESTÁ DESMORONANDO! ({jogo.turnos_fuga} turnos para fugir)")
+        print(f"\n O RESTAURANTE ESTÁ DESMORONANDO ({jogo.turnos_fuga} turnos para fugir)")
         if jogo.turnos_fuga <= 0:
             print("\n O teto desaba sobre você. O fogo consome o que restou.")
             jogo.sala_atual = "morte"
