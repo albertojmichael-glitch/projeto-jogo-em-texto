@@ -641,10 +641,10 @@ class MinigameSeguranca:
         self.indio_janela = False
         self.alberto_troll = False
         self.furia = jogo.furia_noite
-
         #nova mecanica do gerador
         self.gerador_reserva_usado = False
         self.turnos_gerador_ativo = 0
+        self.usos_sistema_turno = 0
         
         print("\n" + "="*50)
         print("Você senta na cadeira da sala de segurança.")
@@ -723,7 +723,11 @@ class MinigameSeguranca:
 
         elif acao == "iluminar tubulacao":
             if self.apagao > 0 or self.energia <= CUSTO_INFO_PESADO: print("Sem força nas luzes.")
+            elif self.usos_sistema_turno >= 2:
+                print(f"{DOS_VERMELHO} [SISTEMA SOBRECARREGADO]: Muitas requisições simultâneas. Hardware travado{RESET}")
+                self.energia -= CUSTO_INFO_PESADO # Pune roubando energia mesmo falhando
             else:
+                self.usos_sistema_turno += 1
                 self.energia -= CUSTO_INFO_PESADO
                 print(f"Você liga o projetor nos dutos (-{CUSTO_INFO_PESADO}% Energia)")
                 if self.jon_pos >= 4: self.jon_pos = 0; print("Jon recua apressado pela tubulação")
@@ -787,49 +791,57 @@ class MinigameSeguranca:
         elif acao == "ouvir":
             if self.apagao > 0: 
                 print("No apagão, você ouve sua própria respiração...")
-            
             elif self.erro_deteccao: 
-                print(f"{DOS_VERMELHO}O alarme estridente de falha nos sensores ecoa na sala. Você não consegue ouvir nada além disso{RESET}")
-
+                print(f"{DOS_VERMELHO}BEEP! BEEP! O alarme estridente de falha nos sensores ecoa na sala. Você não consegue ouvir nada além disso!{RESET}")
             elif self.energia <= CUSTO_INFO_LEVE: 
                 print("Sistema de áudio offline (Bateria fraca).")
-
+            elif self.usos_sistema_turno >= 2:
+                print(f"{DOS_VERMELHO}🚨 [SISTEMA SOBRECARREGADO]: Placa de áudio em curto. Passe o turno para resfriar!{RESET}")
+                self.energia -= CUSTO_INFO_LEVE
             else:
+                self.usos_sistema_turno += 1
                 self.energia -= CUSTO_INFO_LEVE
                 print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 ouviu = False
                 if self.rick_pos >= 3 or (self.caroline_caminho == "porta" and self.caroline_pos >= 5):
-                    print(" Passos metálicos pesados no corredos são ouvidos do corredor"); ouviu = True
+                    print(" Passos metálicos pesados são ouvidos do corredor"); ouviu = True
                 if self.jon_pos >= 4 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 5):
-                    print(" Você escuta arranhos e batidas vindo da tubulação"); ouviu = True
-                if not ouviu: print("Apenas o zumbido dos fios eletricos e da lampada quase apagada.")
+                    print(" Você escuta arranhões e batidas vindo da tubulação"); ouviu = True
+                if not ouviu: 
+                    print("Apenas o zumbido dos fios elétricos e da lâmpada quase apagada.")
 
         elif acao == "cameras":
             if self.apagao > 0 or self.erro_camera: print("📺 [SINAL PERDIDO]")
             elif self.energia <= CUSTO_INFO_LEVE: print("Câmeras offline (Bateria fraca).")
+            elif self.usos_sistema_turno >= 2:
+                print(f"{DOS_VERMELHO}🚨 [SISTEMA SOBRECARREGADO]: Monitor superaquecido. A tela exibe apenas estática!{RESET}")
+                self.energia -= CUSTO_INFO_LEVE
             else:
+                self.usos_sistema_turno += 1
                 self.energia -= CUSTO_INFO_LEVE
                 print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 
                 chance_bug_visual = self.caroline_pos * 10
                 if random.randint(1, 100) <= chance_bug_visual:
-                    print(" [SINAL COM INTERFERÊNCIA] Imagens distorcidas...")
+                    print("📺 [SINAL COM INTERFERÊNCIA] Imagens distorcidas...")
                     print(f"Rick: Setor {random.randint(0,4)}/4 (???)")
                     print(f"Jon: Setor {random.randint(0,5)}/5 (???)")
                 else:
                     print(f"\n--- FEED DAS CÂMERAS ---\nRick: Setor {self.rick_pos}/4")
                     print(f"Jon: Setor {self.jon_pos}/5" if self.jon_pos < 3 else "Jon: [não é visivel nas cameras]")
                 print("------------------------")
-
-                #evento raro
-                if random.randint(1,100) == 1:
-                    print(f"{DOS_VERMELHO} [ANOMALIA DETECTADA] A imagem do setor 1 pisca, na escuridão, você ve dois olhos na escuridão, te encarando diretamente, como soubesse que você está a observando. {RESET}")
-                    pausar(3)
+                
+                if random.randint(1, 100) == 1:
+                    print(f"\n{DOS_VERMELHO}📺 [ANOMALIA DETECTADA]: O feed pisca. Em uma das câmeras escuras, o rosto quebrado de Caroline encara diretamente a lente... e ela está sorrindo para você.{RESET}")
 
         elif acao == "ver tubulacao":
             if self.apagao > 0 or self.erro_deteccao: print("🔴 [SENSORES OFFLINE]")
             elif self.energia <= CUSTO_INFO_LEVE: print("Sensores offline (Bateria fraca).")
+            elif self.usos_sistema_turno >= 2:
+                print(f"{DOS_VERMELHO}🚨 [SISTEMA SOBRECARREGADO]: Painel de detecção travado!{RESET}")
+                self.energia -= CUSTO_INFO_LEVE
             else:
+                self.usos_sistema_turno += 1
                 self.energia -= CUSTO_INFO_LEVE
                 print(f"(-{CUSTO_INFO_LEVE}% Energia)")
                 if self.jon_pos >= 3 or (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 4): print("🔴 Sensor fica vermelho, há um movimento nos dutos.")
@@ -905,6 +917,8 @@ class MinigameSeguranca:
         # EVENTOS DE FIM DE TURNO (MECÂNICAS ATIVAS)
         # ==========================================
         if turno_passou:
+
+            self.usos_sistema_turno = 0
 
             #GERADOR
             if self.turnos_gerador_ativo > 0 and acao != "ligar gerador":
