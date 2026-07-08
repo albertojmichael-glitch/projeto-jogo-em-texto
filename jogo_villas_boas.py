@@ -1512,7 +1512,7 @@ def atualizar_eventos_de_tempo(jogo):
         if jogo.turnos_mesma_sala == jogo.turnos_perseguidor_aviso:
             print("\n Você escuta ruídos metálicos pesados ecoando no corredor próximo...")
         elif jogo.turnos_mesma_sala == jogo.turnos_perseguidor_morte:
-            print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada!\n" + "="*50)
+            print("\n" + "="*50 + "\nVocê ficou muito tempo parado. A porta é arrombada\n" + "="*50)
             pausar(4)
             jogo.sala_atual = "morte"
             
