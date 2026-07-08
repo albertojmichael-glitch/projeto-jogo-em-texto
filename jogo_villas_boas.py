@@ -679,6 +679,17 @@ class MinigameSeguranca:
         CUSTO_INFO = 1    # Custo leve para obter informação
         CUSTO_MOTOR = 2   # Custo para acionar o motor da porta
 
+        #nova mecanica
+        custo_extra = 0 
+        if self.turno >= 22:
+            custo_extra >= 3
+        elif self.turno >= 12:
+            custo_extra = 1
+        
+        CUSTO_INFO = 1 + custo_extra
+        CUSTO_MOTOR = 2 + custo_extra
+
+
         if acao == "fechar porta":
             if self.apagao > 0 or self.energia <= CUSTO_MOTOR: print("Sem energia! O botão faz um clique morto.")
             elif self.porta_fechada: print("A porta já está fechada.")
@@ -776,6 +787,11 @@ class MinigameSeguranca:
                     print(f"Jon: Setor {self.jon_pos}/5" if self.jon_pos < 3 else "Jon: [não é visivel nas cameras]")
                 print("------------------------")
 
+                #evento raro
+                if random.randint(1,100) == 1:
+                    print(f"{DOS_VERMELHO} [ANOMALIA DETECTADA] A imagem do setor 1 pisca, na escuridão, você ve dois olhos na escuridão, te encarando diretamente, como soubesse que você está a observando. {RESET}")
+                    pausar(3)
+
         elif acao == "ver tubulacao":
             if self.apagao > 0 or self.erro_deteccao: print("🔴 [SENSORES OFFLINE]")
             elif self.energia <= CUSTO_INFO: print("Sensores offline (Bateria fraca).")
@@ -827,8 +843,27 @@ class MinigameSeguranca:
                     print(f"\n{DOS_AMARELO} Você ouve um batidas violentas na porta, e passos indo embora.{RESET}")
         
 
-
         
+        pausar(4)
+
+        #eventos raros
+        if acao_valida:
+            chance_evento = random.randint(1,100)
+
+            if chance_evento <= 3: #3% de chance
+                print(f"\n{DOS_AMARELO} Toc.. Toc.. Você escuta batidas fracas na janela, você não sabe se há algo ali, o vidro está muito sujo.{RESET}")
+
+            elif chance_evento <= 7: #4% de chance
+                print(f"\n{DOS_AMARELO} Você escuta ruidos vindo da ventilação... Parece que algo está arranhando o aluminio. {RESET}")
+
+            elif chance_evento <= 9: #2% de chance
+                print(f"\n{DOS_VERMELHO} 'Rogerio'... Você escuta algo chamar seu nome vindo do fundo do corredor.{RESET}")
+
+            elif chance_evento <= 10: #1% de chance
+                print(f"\n{DOS_VERMELHO} Pelo canto do seu olho, você jura ter visto algo acenando da janela, você não sabe se é algo real ou não.{RESET}")
+
+            elif chance_evento <= 12: #2% de chance
+                print(f"\n{DOS_VERMELHO} Você jura ter visto algo na ventilação... Será que é coisa da sua cabeça?{RESET}")
         
         pausar(4)
 
@@ -836,6 +871,13 @@ class MinigameSeguranca:
         # EVENTOS DE FIM DE TURNO (MECÂNICAS ATIVAS)
         # ==========================================
         if turno_passou:
+
+            #aviso do sistema de energia
+            if self.turno == 12:
+                print(f"\n{DOS_AMARELO} [SISTEMA] O antigo gerador está superaquecendo, cada acão custará mais energia a partir de agora.{RESET}")
+
+            elif self.turno == 22:
+                print(f"\n {DOS_AMARELO} [SISTEMA] [AVISO CRITICO!!!] O gerador superaqueceu! Geradores reservas ligados, dreno de energia aumentou!{RESET}")
             
             # DRENO CONTÍNUO DA PORTA (Balanceado de 5 para 2)
             if self.porta_fechada and self.energia > 0:
