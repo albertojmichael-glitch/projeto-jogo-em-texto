@@ -7,6 +7,13 @@ import copy
 import json 
 import difflib
 
+from pathlib import Path
+from dataclasses import dataclass, field, asdict
+from typing import List, Dict, Any, Optional
+
+import colorama
+colorama.init(autoreset=True)
+
 if sys.platform == "win32":
     os.system("color") 
 
@@ -32,6 +39,10 @@ def normalizar(texto):
 
 def limpar_tela():
     print("\n" * 50)
+
+class QuitGameException(Exception):
+    """Exceção customizada para fechar o jogo de forma segura."""
+    pass
 
 def pausar(segundos):
     """Substitui o time.sleep para respeitar o DEBUG_MODE"""
@@ -429,36 +440,45 @@ descricoes_itens = {
 }
 
 # ==========================================
-# ESTADO GERAL DO JOGO E SAVE/LOAD
+# ESTADO GERAL DO JOGO (DATACLASS)
 # ==========================================
+@dataclass
 class GameState:
-    def __init__(self):
-        self.hp = 3
-        self.inventario = ["lanterna"] # A Punição Nº 1: Já ocupa 1 dos 3 slots!
-        self.turnos_luz = 3
-        self.turnos_no_escuro = 0
-        self.turnos_enjoado = 0
-        self.sala_atual = "entrada"
-        self.turnos_mesma_sala = 0
-        self.dificuldade_escolhida = "NORMAL"
-        self.chance_sprint_minotauro = 15
-        self.turnos_perseguidor_aviso = 3
-        self.turnos_perseguidor_morte = 5
-        self.energia_min_noite = 90
-        self.energia_max_noite = 100
-        self.furia_noite = 1
-        self.fios_cortados_inventario = False
-        self.noite_vencida = False
-        self.incendio = False
-        self.turnos_fuga = 5
-        self.isqueiro_usos = 3 
-        self.posicao_perseguidor = "palco" # A Punição Nº 2: Ele nasce no palco!
-        self.mapa = copy.deepcopy(MAPA_ORIGINAL)
-        self.minigame_atual = None
+    hp: int = 3
+    inventario: List[str] = field(default_factory=lambda: ["lanterna"])
+    turnos_luz: int = 3
+    turnos_no_escuro: int = 0
+    turnos_enjoado: int = 0
+    sala_atual: str = "entrada"
+    turnos_mesma_sala: int = 0
+    dificuldade_escolhida: str = "NORMAL"
+    chance_sprint_minotauro: int = 15
+    turnos_perseguidor_aviso: int = 3
+    turnos_perseguidor_morte: int = 5
+    energia_min_noite: int = 90
+    energia_max_noite: int = 100
+    furia_noite: int = 1
+    fios_cortados_inventario: bool = False
+    noite_vencida: bool = False
+    incendio: bool = False
+    turnos_fuga: int = 5
+    isqueiro_usos: int = 3
+    posicao_perseguidor: str = "palco"
+    mapa: Dict[str, Any] = field(default_factory=lambda: copy.deepcopy(MAPA_ORIGINAL))
+    minigame_atual: Any = None
 
-jogo = GameState()
+    def to_dict(self) -> dict:
+        d = asdict(self)
+        d['minigame_atual'] = None # Não serializamos o minigame ativo
+        return d
 
-def salvar_jogo(estado):
+    @classmethod
+    def from_dict(cls, dados: dict):
+        return cls(**dados)
+
+SAVE_FILE = Path("save_villasboas.json")
+
+def salvar_jogo(estado: GameState) -> bool:
     if estado.minigame_atual is not None:
         print(f"{DOS_AMARELO}Você não pode salvar o jogo durante um evento!{RESET}")
         pausar(2)
@@ -470,35 +490,39 @@ def salvar_jogo(estado):
         return False
     
     try:
-        dados = copy.deepcopy(estado.__dict__)
-        dados['minigame_atual'] = None 
-        with open("save_villasboas.json", "w", encoding="utf-8") as f:
-            json.dump(dados, f, ensure_ascii=False, indent=4)
-            
-        estado.inventario.remove("disquete") # Consome o item!
-        print(f"{DOS_VERDE}Jogo salvo. O disquete foi consumido na leitura.{RESET}")
+        dados = estado.to_dict()
+        SAVE_FILE.write_text(json.dumps(dados, ensure_ascii=False, indent=4), encoding="utf-8")
+        
+        estado.inventario.remove("disquete") # Consome APÓS salvar com sucesso
+        print(f"{DOS_VERDE}💾 Jogo salvo. O disquete foi consumido na leitura.{RESET}")
         pausar(1.5)
         return True
     except Exception as e:
-        print(f"{DOS_VERMELHO}Erro ao salvar o jogo: {e}{RESET}")
+        print(f"{DOS_VERMELHO}Erro crítico de I/O ao salvar o jogo: {e}{RESET}")
         return False
 
-def carregar_jogo(estado):
-    if not os.path.exists("save_villasboas.json"):
+def carregar_jogo(estado: GameState) -> bool:
+    if not SAVE_FILE.exists():
         print(f"{DOS_AMARELO}Nenhum arquivo de save encontrado.{RESET}")
         pausar(1.5)
         return False
         
     try:
-        with open("save_villasboas.json", "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        for key, value in dados.items():
+        dados = json.loads(SAVE_FILE.read_text(encoding="utf-8"))
+        novo_estado = GameState.from_dict(dados)
+        
+        # Atualiza o estado atual com os dados carregados de forma segura
+        for key, value in asdict(novo_estado).items():
             setattr(estado, key, value)
-        print(f"{DOS_VERDE}💾 Jogo carregado.{RESET}")
+            
+        print(f"{DOS_VERDE}💾 Jogo carregado com sucesso.{RESET}")
         pausar(2)
         return True
+    except (json.JSONDecodeError, TypeError) as e:
+        print(f"{DOS_VERMELHO}Arquivo de save corrompido ou incompatível.{RESET}")
+        return False
     except Exception as e:
-        print(f"{DOS_VERMELHO}Erro ao carregar o jogo: O arquivo pode estar corrompido.{RESET}")
+        print(f"{DOS_VERMELHO}Erro desconhecido ao carregar: {e}{RESET}")
         return False
 
 
@@ -568,21 +592,30 @@ class MinigameMinotauro:
         if acao == "ir esquerda":
             if self.px > -1: self.px -= 1
             else: print("Você bate a cara na parede..."); turno_gasto = True
+
         elif acao == "ir direita":
             if self.px < 1: self.px += 1
             else: print("Você bate a cara na parede..."); turno_gasto = True
+
         elif acao == "ir frente":
             if self.py < 3: self.py += 1
             else: print("Você bateu na parede do fundo..."); turno_gasto = True
+
         elif acao == "esperar": 
             print("Você fica imóvel aguardando..."); turno_gasto = True
+
         elif acao == "pegar tesoura":
             if self.px == 0 and self.py == 3 and self.tesoura_chao:
                 jogo.inventario.append("tesoura"); self.tesoura_chao = False
                 print("Você sem querer derruba a tesoura no chão, fazendo um barulho estridente, você guarda rapidamente na sua bolsa")
-                self.mover_minotauro() # Atrai o monstro na mesma hora!
+                
+                # Nerf: 50% de chance do monstro ouvir, ao invés de movimento garantido
+                if random.random() < 0.50:
+                    self.mover_minotauro() 
                 turno_gasto = True
-            else: print("Não tem tesoura aqui.")
+            else: 
+                print("Não tem tesoura aqui.")
+
         elif acao == "cortar fios":
             if self.px == 0 and self.py == 3:
                 if "tesoura" in jogo.inventario:
@@ -693,7 +726,7 @@ class MinigameSeguranca:
         #nova mecanica
         custo_extra = 0 
         if self.turno >= 22: # 05:30 am
-            custo_extra >= 3
+            custo_extra = 3
         elif self.turno >= 12: # 3:00 am
             custo_extra = 1
         
@@ -856,37 +889,27 @@ class MinigameSeguranca:
             print("Comando inválido.")
             acao_valida = False
 
-        # nova mecanica foda
+        # --- A NOVA MECÂNICA: O TEMPO NÃO PARA ---
         if acao_valida and acao != "esperar":
-            #chance de 10%
+            # 1. A chance de 10% de avanço no meio da ação
             if random.random() <= 0.10:
-                quem = random.choice (["rick", "jon", "caroline"])
+                quem = random.choice(["rick", "jon", "caroline"])
                 if quem == "rick": self.rick_pos += 1
                 elif quem == "jon": self.jon_pos += 1
                 elif quem == "caroline": self.caroline_pos += 1
-                print(f"\n {DOS_VERMELHO} você escuta passos apressados enquanto você mexia no sistema. {RESET}")
+                print(f"\n{DOS_VERMELHO}Você ouve um ruído metálico se aproximando enquanto mexe no sistema.{RESET}")
 
-            #check da morte
-            rick_ataque = (self.rick_pos >= 4)
-            carol_porta = (self.caroline_caminho == "porta" and self.caroline_pos >= 6 )
-            carol_duto = (self.caroline_caminho == "tubulacao" and self.caroline_pos >= 6)
-            jon_ataque = (self.jon_pos >= 5)
-
-            if (rick_ataque and not self.porta_fechada) or (carol_porta and not self.porta_fechada) or jon_ataque or carol_duto:
-                print(f"\n{DOS_VERMELHO} Um animatronico invadiu a sala enquanto você usava o sistema{RESET}")
-                pausar(2)
-                return "morte"
-
-            #defesa imediata
+            # 2. Defesa Imediata (Bate e recua se a porta já estava fechada)
+            # Removemos a "Morte Instantânea" daqui! Se o monstro chegar em você, 
+            # ele só vai te matar de fato no bloco de Fim de Turno lá embaixo.
             if self.porta_fechada:
                 if self.rick_pos >= 4:
                     self.rick_pos = 0
-                    print(f"{DOS_VERMELHO} Você escuta toques na porta, e passos recuando{RESET}")
-
-                if carol_porta:
+                    print(f"\n{DOS_AMARELO} ALGO SOCA A PORTA COM VIOLÊNCIA E RECUA{RESET}")
+                if (self.caroline_caminho == "porta" and self.caroline_pos >= 6):
                     self.caroline_pos = 0
-                    self.caroline_caminho = random.choice (["porta", "tubulacao"])
-                    print(f"\n{DOS_AMARELO} Você ouve um batidas violentas na porta, e passos indo embora.{RESET}")
+                    self.caroline_caminho = random.choice(["porta", "tubulacao"])
+                    print(f"\n{DOS_AMARELO} Um estrondo na porta. Ela recuou frustrada.{RESET}")
         
 
         
@@ -1340,12 +1363,26 @@ def cmd_jogar(comando, jogo):
         caminho_certo = [random.choice(opcoes) for _ in range(4)]
         
         dicas = {
-            "f": "Uma leve corrente de ar frio sopra na sua FRENTE.",
-            "e": "Você escuta o som de metal arranhando à sua ESQUERDA.",
-            "d": "Um cheiro de carne podre vem da sua DIREITA."
+            "f": "Uma corrente de ar gelado bate direto no seu rosto.",
+            "e": "Um som agudo de metal arranhando reverbera pela parede canhota do duto.",
+            "d": "O cheiro podre de carne estragada fica mais forte no caminho destro."
         }
         
         passo = 0
+        while passo < 4:
+            # 25% de chance dos sentidos do porco falharem e darem uma pista falsa!
+            dica_exibida = dicas[caminho_certo[passo]]
+            if random.random() <= 0.25:
+                erradas = [v for k, v in dicas.items() if k != caminho_certo[passo]]
+                dica_exibida = random.choice(erradas)
+                print(f"\n{DOS_VERMELHO}[SENSÓRIO CONFUSO]: {dica_exibida}{RESET}")
+            else:
+                print(f"\n{DOS_AMARELO}[SENSÓRIO]: {dica_exibida}{RESET}")
+                
+            direcao = input(f"Passo {passo+1}/4 - Direção (F/E/D): ").strip().lower()
+
+
+
         while passo < 4:
             # Mostra a dica sensorial correspondente à direção certa
             print(f"\n{DOS_AMARELO}[SENSÓRIO]: {dicas[caminho_certo[passo]]}{RESET}")
@@ -1612,8 +1649,7 @@ def processar_comando(comando, jogo, mapa):
         print(f"{DOS_VERMELHO}ERRO CRÍTICO 0x0000: PRESENÇA ULTERIOR PRESA NO DISCO.{RESET}")
         pausar(2); return False
     elif comando == "sair":
-        print("Você desistiu de jogar...")
-        sys.exit()
+        raise QuitGameException()
     else:
         print("Faltam informações no comando. (Ex: se digitou 'pegar', o que deseja pegar?) para ver os comandos, digite 'ajuda' ou 'comandos' ")
         pausar(1.5); return False
@@ -1680,7 +1716,7 @@ def atualizar_eventos_de_tempo(jogo):
                 if jogo.posicao_perseguidor in conexoes_jogador:
                     print(f"\n{DOS_AMARELO} O chão vibra. Você ouve passos de metal maciço na sala ao lado...{RESET}")
 
-def menu_inicial():
+def menu_inicial(jogo):
     limpar_tela()
     digitar("VILLAS-BOAS INDUSTRIES (C) 1982", 0.01, DOS_BRANCO)
     digitar("BIOS VERSION 1.04 - RELEASE 02/11/1982", 0.01, DOS_BRANCO)
@@ -1753,19 +1789,26 @@ def menu_inicial():
 # ==========================================
 
 if __name__ == "__main__":
-
-    menu_inicial()
+    # Inicializa o estado do jogo DE FATO aqui (sem globais)
+    jogo = GameState()
+    
+    # O menu inicial agora precisa receber o objeto do jogo!
+    # OBS: Vá na função menu_inicial() e coloque ela para aceitar (jogo) como parâmetro,
+    # igual você fez com as outras funções! (ex: def menu_inicial(jogo):)
+    menu_inicial(jogo) 
+    
     pausar(1)
     print(f"\n{DOS_BRANCO}[ OS VILLAS BOAS v1.0 | MODO: {jogo.dificuldade_escolhida} ]{RESET}")
     print(f"{DOS_BRANCO}Você entra no restaurante. Sua lanterna velha dá três piscadas fracas...{RESET}")
-    pausar(3)
-    print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ.{RESET}\n")
-    pausar(3)
+    pausar(2)
+    print(f"{DOS_AMARELO}[AVISO DO SISTEMA]: BATERIA DA LANTERNA EM 5%. PROCURAR OUTRA FONTE DE LUZ EM ATÉ 3 TURNOS.{RESET}\n")
+    pausar(2)
 
     while True:
         try:
             print("\n" + "="*50)
 
+            # ... (Toda a lógica de instanciar os minigames continua igual) ...
             if jogo.sala_atual == "sala de energia" and not jogo.fios_cortados_inventario:
                 if not isinstance(jogo.minigame_atual, MinigameMinotauro):
                     jogo.minigame_atual = MinigameMinotauro(jogo)
@@ -1776,7 +1819,13 @@ if __name__ == "__main__":
 
             if jogo.minigame_atual:
                 jogo.minigame_atual.imprimir_status()
-                comando = normalizar(input(f"\n{DOS_VERDE}Ação: {RESET}"))
+                
+                # BLINDAGEM DE INPUT: Evita que Ctrl+C ou EOF quebrem o código feio
+                try:
+                    comando = normalizar(input(f"\n{DOS_VERDE}Ação: {RESET}"))
+                except (EOFError, KeyboardInterrupt):
+                    raise QuitGameException()
+                    
                 resultado = jogo.minigame_atual.processar_turno(comando, jogo)
                 
                 if resultado == "morte":
@@ -1787,15 +1836,15 @@ if __name__ == "__main__":
                     jogo.minigame_atual = None; jogo.sala_atual = "01"
                 continue 
 
+            # ... (Os blocos de checagem de "morte", "saida", "cama", "final_bom", etc continuam EXATAMENTE IGUAIS, vou pular para a parte do input da sala) ...
             if jogo.sala_atual == "morte":
                 limpar_tela()
                 print(f"{DOS_VERMELHO}{CAVEIRA_MORTE}{RESET}")
-                print(f"\n{DOS_VERMELHO}GAME OVER.{RESET}")
+                print(f"\n{DOS_VERMELHO}💀 GAME OVER. Um animatrônico te pegou e você não sobreviveu à noite.{RESET}")
                 break
 
-
             elif jogo.sala_atual == "saida":
-                print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE ]{RESET}")
+                print(f"\n{DOS_VERDE}[ FINAL MEDÍOCRE: A IGNORÂNCIA É UMA BÊNÇÃO ]{RESET}")
                 break
                 
             elif jogo.sala_atual == "cama":
@@ -1860,59 +1909,52 @@ if __name__ == "__main__":
 
             sala = jogo.mapa[jogo.sala_atual]
             print(f"📍 VOCÊ ESTÁ EM: {jogo.sala_atual.upper()}")
-            print(f"👁️  Visão: {sala['descrição']}")
-
-            # --- COLORIR PALAVRAS-CHAVE NA DESCRIÇÃO ---
-            descricao_colorida = sala['descrição']
             
-            # Pinta os itens inspecionáveis de Amarelo
+            descricao_colorida = sala['descrição']
             for inspecionavel in sala.get("inspecionaveis", {}):
                 descricao_colorida = descricao_colorida.replace(inspecionavel, f"{DOS_AMARELO}{inspecionavel}{RESET}")
-            
-            # Pinta os itens pegáveis de Verde (caso apareçam na descrição)
             for item in sala.get("itens", []):
                 descricao_colorida = descricao_colorida.replace(item, f"{DOS_VERDE}{item}{RESET}")
                 
             print(f"👁️  Visão: {descricao_colorida}")
 
-            # --- COLORIR LISTA DE ITENS NO CHÃO ---
             if len(sala.get("itens", [])) > 0:
                 if jogo.turnos_luz > 0:
                     itens_formatados = [f"{DOS_VERDE}{item}{RESET}" for item in sala['itens']]
-                    print(f" Itens no chão: {', '.join(itens_formatados)}")
+                    print(f"📦 Itens no chão: {', '.join(itens_formatados)}")
                 else:
-                    print(f" {DOS_BRANCO}Deve ter algo no chão, mas está escuro demais para ver o quê.{RESET}")
+                    print(f"📦 {DOS_BRANCO}Deve ter algo no chão, mas está escuro demais para ver o quê.{RESET}")
 
-            # --- NOVA BÚSSOLA DE SAÍDAS ---
             chaves_ignoradas = ["descrição", "itens", "inspecionaveis", "cofre_important", "cadeira"]
-            # Pega todas as chaves da sala que não estão na lista de ignoradas
             saidas = [k for k in sala.keys() if k not in chaves_ignoradas and isinstance(sala[k], str)]
-            
             if saidas:
-                print(f" Saídas: {DOS_AMARELO}{', '.join(saidas).title()}{RESET}")
+                print(f"🧭 Saídas: {DOS_AMARELO}{', '.join(saidas).title()}{RESET}")
             else:
-                print(f" Saídas: {DOS_VERMELHO}Nenhuma saída aparente...{RESET}")
+                print(f"🧭 Saídas: {DOS_VERMELHO}Nenhuma saída aparente...{RESET}")
 
             print(f"\n{DOS_BRANCO}[ SISTEMA OPERACIONAL VILLAS BOAS v20.08 ]{RESET}")
             print(f"{DOS_BRANCO}[ HP: {DOS_VERMELHO}{jogo.hp}/3{DOS_BRANCO} | LUZ: {DOS_AMARELO}{jogo.turnos_luz}{DOS_BRANCO} | INV: {len(jogo.inventario)}/{MAX_INVENTARIO} ]{RESET}")
             
-            comando = normalizar(input(f"{DOS_VERDE}C:\\> {RESET}"))
+            # BLINDAGEM DE INPUT DA SALA
+            try:
+                comando = normalizar(input(f"{DOS_VERDE}C:\\> {RESET}"))
+            except (EOFError, KeyboardInterrupt):
+                raise QuitGameException()
 
             gastou_turno = processar_comando(comando, jogo, jogo.mapa)
 
             if gastou_turno:
                 atualizar_eventos_de_tempo(jogo)
 
+        except QuitGameException:
+            print(f"\n{DOS_AMARELO}Encerrando o Sistema Villas Boas. Até logo.{RESET}")
+            break
+            
         except Exception as e:
             if DEBUG_MODE:
-                raise e
+                raise e # Erros estouram na nossa cara se formos os devs
             else:
                 print(f"\n{DOS_VERMELHO}[ FALHA GERAL DE SISTEMA - TELA AZUL ]{RESET}")
-                print(f"{DOS_BRANCO}O sistema Villas Boas encontrou uma anomalia na realidade.{RESET}")
-                print(f"{DOS_VERMELHO}Código do Erro: {e}{RESET}")
-                print(f"{DOS_BRANCO}Ignorando anomalia e reiniciando a simulação do turno...{RESET}")
-                time.sleep(4)
+                print(f"{DOS_BRANCO}O sistema encontrou um erro: {e}{RESET}")
+                time.sleep(3)
                 continue
-
-print("\n" + "="*50)
-input(f"{DOS_BRANCO}[PRESSIONE ENTER PARA FECHAR]{RESET}")
