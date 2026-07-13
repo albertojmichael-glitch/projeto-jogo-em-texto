@@ -5,5 +5,5 @@ function trocarpalavra() {
 function modoEscuro() {
   document.body.style.backgroundColor = "#222222";
 
-  document.getElementById("green-green-grass-of-home").style.color = white
+  document.getElementById("green-green-grass-of-home").style.color = "white";
 }
