@@ -2,7 +2,7 @@
   body {
   background-color: lightyellow;
   text-align: center;
-  font-family: 'Times', serif
+  font-family: 'times', serif;
   }
   
   h1 {
@@ -42,11 +42,23 @@
   <img src= "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR- J5yrZ71awnunVS7l45BLtYZPObrkYW4L2pO89EJ5Fw&s=10" width=250>
 
 <div>
+
+<div>  
   
 <br><br><button onclick="trocarpalavra()">clique aqui!</button>
 
+<div>
+
+<br><br><button onclick="modoEscuro()">Modo Escuro 🌙 </button>
+  
 <script>
   function trocarpalavra() {
     document.getElementById("green-green-grass-of-home").innerHTML = "verde verde grama da casa";
+  }
+  
+  function modoEscuro() {
+  document.body.style.backgroundColor = "#222222";
+
+  document.getElementById("green-green-grass-of-home").style.color = white
   }
 </script>  
