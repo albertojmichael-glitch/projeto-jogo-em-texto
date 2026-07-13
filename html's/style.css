@@ -30,8 +30,28 @@ button:hover {
   transform: scale(1.05);
 }
 
+#btn-modo-escuro {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 40px;
+    cursor: pointer;
+}
+
 img {
   width: 250px;
   border-radius: 15px;
   margin-top: 20px;
+}
+
+input {
+  display: block;
+  margin: 0 auto 15px auto;
+  padding: 10px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  width: 250px;
 }

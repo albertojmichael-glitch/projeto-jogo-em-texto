@@ -29,28 +29,48 @@
     background-color: red;
     transform: scale(1.05);
   }
+
+  #btn-modo-escuro {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 40px;
+    cursor: pointer;
+  }
+
+  input {
+  display: block;
+  margin: 0 auto 15px auto;
+  padding: 10px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  width: 250px;
+}
   
 </style>
 
+<button id="btn-modo-escuro" onclick="modoEscuro()">🌙</button>
 
-<h1 id="green-green-grass-of-home">verde grama da casa</h1>
+<h1 id="green-green-grass-of-home">Solo para Invitados</h1>
 
-<p></p>
+<div id="area-login">
+  <h2> Faça seu Login</h2>
 
-<div>
-  
-  <img src= "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR- J5yrZ71awnunVS7l45BLtYZPObrkYW4L2pO89EJ5Fw&s=10" width=250>
+  <p>Nome de Usuário:</p>
+  <input type="text" id="campo-nome" placeholder="Digite seu Nome">
 
-<div>
+  <p>Senha:</p>
+  <input type="password" id="campo-senha" placeholder="Digite sua Senha">
 
-<div>  
-  
-<br><br><button onclick="trocarpalavra()">clique aqui!</button>
+  <br>
+  <button onclick="entrar()">Entrar</button>
 
-<div>
+</div>
 
-<br><br><button onclick="modoEscuro()">Modo Escuro 🌙 </button>
-  
+
 <script>
   function trocarpalavra() {
     document.getElementById("green-green-grass-of-home").innerHTML = "verde verde   grama da casa";
