@@ -23,3 +23,8 @@ button {
     border: none;
     cursor: pointer;
     }
+    
+button:hover {
+  background-color: red;
+  transform: scale(1.05);
+}
