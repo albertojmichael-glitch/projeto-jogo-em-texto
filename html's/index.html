@@ -67,7 +67,21 @@
   
   <br>
   <button onclick="entrar()">Entrar</button>
+
+  <p><a href="#" onclick="mostrarCadastro()" style="color: green;">Não tem conta? Cadastre-se</a></p>
 </div>
+
+<div id="area-cadastro" style="display: none;">
+  <h2>Crie sua conta</h2>
+  <p>Escolha um Nome de Usuário:</p>
+  <input type="text" id="novo-nome" placeholder="Crie um nome">
+  <p>Escolha uma Senha:</p>
+  <input type="password" id="nova-senha" placeholder="Crie uma senha">
+  <br>
+  <button onclick="cadastrar()">Cadastrar</button>
+
+  <p><a href="#" onclick="mostrarLogin()" style="color: green;">Já tem conta? Faça login</a></p>
+  </div>
 
 <script>
   function trocarpalavra() {
