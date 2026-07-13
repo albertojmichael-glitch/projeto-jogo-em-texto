@@ -7,3 +7,16 @@ function modoEscuro() {
 
   document.getElementById("green-green-grass-of-home").style.color = "white";
 }
+
+function entrar() {
+
+  let nomeDigitado = document.getElementById("campo-nome").value;
+  let senhaDigitada = document.getElementById("campo-senha").value;
+
+  if (senhaDigitada === "1234") {
+
+    alert("Bem-vindo(a) ao Site, " + nomeDigitado + "!");
+  } else {
+    alert("Senha Incorreta!, esta senha ja foi utilizada") // KKKKKso pra zuar
+  } 
+}

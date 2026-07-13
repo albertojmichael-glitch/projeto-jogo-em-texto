@@ -32,11 +32,11 @@
 
   #btn-modo-escuro {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 2px;
+    right: 2px;
     background: none;
     border: none;
-    font-size: 40px;
+    font-size: 25px;
     cursor: pointer;
   }
 
@@ -48,7 +48,7 @@
   border-radius: 8px;
   border: 2px solid #ccc;
   width: 250px;
-}
+  }
   
 </style>
 
@@ -57,19 +57,17 @@
 <h1 id="green-green-grass-of-home">Solo para Invitados</h1>
 
 <div id="area-login">
-  <h2> Faça seu Login</h2>
-
+  <h2>Faça seu login</h2>
+  
   <p>Nome de Usuário:</p>
-  <input type="text" id="campo-nome" placeholder="Digite seu Nome">
-
+  <input type="text" id="campo-nome" placeholder="Digite seu nome">
+  
   <p>Senha:</p>
-  <input type="password" id="campo-senha" placeholder="Digite sua Senha">
-
+  <input type="password" id="campo-senha" placeholder="Sua senha">
+  
   <br>
   <button onclick="entrar()">Entrar</button>
-
 </div>
-
 
 <script>
   function trocarpalavra() {
@@ -80,6 +78,19 @@
   document.body.style.backgroundColor = "#222222";
 
   document.getElementById("green-green-grass-of-home").style.color = "white";
+  }
+
+  function entrar() {
+
+  let nomeDigitado = document.getElementById("campo-nome").value;
+  let senhaDigitada = document.getElementById("campo-senha").value;
+
+  if (senhaDigitada === "1234") {
+
+    alert("Bem-vindo(a) ao Site, " + nomeDigitado + "!");
+  } else {
+    alert("Senha Incorreta!, esta senha ja foi utilizada") // KKKKKso pra zuar
+   } 
   }
   
 </script>  
