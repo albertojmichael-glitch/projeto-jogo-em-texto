@@ -22,9 +22,15 @@ button {
     border-radius: 15px;
     border: none;
     cursor: pointer;
-    }
-    
+  }
+
 button:hover {
   background-color: red;
   transform: scale(1.05);
+}
+
+img {
+  width: 250px;
+  border-radius: 15px;
+  margin-top: 20px;
 }
