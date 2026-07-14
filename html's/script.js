@@ -6,6 +6,10 @@ function modoEscuro() {
   document.body.style.backgroundColor = "#222222";
 
   document.getElementById("green-green-grass-of-home").style.color = "white";
+
+  document.getElementById("titulo-login").style.color = "white";
+  document.getElementById("titulo-cadastro").style.color = "white";
+  
 }
 
 function entrar() {
