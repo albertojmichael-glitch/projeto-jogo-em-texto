@@ -96,15 +96,19 @@
 
   function entrar() {
 
-  let nomeDigitado = document.getElementById("campo-nome").value;
-  let senhaDigitada = document.getElementById("campo-senha").value;
+    let nomeDigitado = document.getElementById("campo-nome").value;
+    let senhaDigitada = document.getElementById("campo-senha").value;
 
-  if (senhaDigitada === "1234") {
+    let nomeSalvo = localStorage.getItem("nomeSalvo");
+    let senhaSalva = localStorage.getItem("senhaSalva");
 
-    alert("Bem-vindo(a) ao Site, " + nomeDigitado + "!");
-  } else {
-    alert("Senha Incorreta!, esta senha ja foi utilizada") // KKKKKso pra zuar
-   } 
+    if (nomeDigitado === nomeSalvo && senhaDigitada === senhaSalva) {
+
+      alert("Bem vindo de volta, " + nomeDigitado + "!");
+    
+    } else {
+      alert("nome ou senha incorretos, verifique seus dados ou cadastre-se.");
+    }
   }
 
   function mostrarCadastro() {
