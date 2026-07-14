@@ -106,5 +106,28 @@
     alert("Senha Incorreta!, esta senha ja foi utilizada") // KKKKKso pra zuar
    } 
   }
+
+  function mostrarCadastro() {
+  document.getElementById("area-login").style.display = "none";
+  document.getElementById("area-cadastro").style.display = "block";
+
+}
+
+function mostrarLogin() {
+  document.getElementById("area-cadastro").style.display= "none";
+  document.getElementById("area-login").style.display = "block";
+
+}
+
+function cadastrar() {
+  let nomeCriado = document.getElementById("novo-nome").value;
+  let senhaCriada = document.getElementById("nova-senha").value;
+
+  localStorage.setItem("nomeSalvo", nomeCriado);
+  localStorage.setItem("senhaSalva", senhaCriada);
+
+  alert("Conta criada! Volte para o login.");
+  mostrarLogin();
+}
   
 </script>  
