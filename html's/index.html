@@ -70,7 +70,7 @@
   
 </style>
 
-<button id="btn-modo-escuro" onclick="alterarTema()">🌙</button>
+<button id="btn-modo-escuro" onclick="alternarTema()">🌙</button>
 
 <h1 id="green-green-grass-of-home">Solo para Invitados</h1>
 
@@ -140,15 +140,20 @@
     let nomeDigitado = document.getElementById("campo-nome").value;
     let senhaDigitada = document.getElementById("campo-senha").value;
 
+    if (!nomeDigitado || !senhaDigitada) {
+      mostrarAviso("Preencha todos os Campos");
+      return;
+    }
+
     let nomeSalvo = localStorage.getItem("nomeSalvo");
     let senhaSalva = localStorage.getItem("senhaSalva");
 
     if (nomeDigitado === nomeSalvo && senhaDigitada === senhaSalva) {
 
-      alert("Bem vindo de volta, " + nomeDigitado + "!");
+      mostrarAviso("Bem vindo de volta, " + nomeDigitado + "!");
     
     } else {
-      alert("nome ou senha incorretos, verifique seus dados ou cadastre-se.");
+      mostrarAviso("nome ou senha incorretos, verifique seus dados ou cadastre-se.");
     }
   }
 
