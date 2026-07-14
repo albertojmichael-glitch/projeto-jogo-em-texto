@@ -54,3 +54,14 @@ function cadastrar() {
   alert("Conta criada! Volte para o login.");
   mostrarLogin();
 }
+
+function mostrarAviso(mensagem) {
+  document.getElementById("texto-aviso").innerHTML = mensagem;
+  document.getElementById("caixa-aviso").style.display = "block";
+
+}
+
+function fecharAviso() {
+  document.getElementById("caixa-aviso").style.display = "none";
+  
+}
