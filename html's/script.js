@@ -9,6 +9,8 @@ function modoEscuro() {
 
   document.getElementById("titulo-login").style.color = "white";
   document.getElementById("titulo-cadastro").style.color = "white";
+  document.getElementById("usuario-nome").style.color = "white";
+  document.getElementById("mister-senha").style.color = "white";
   
 }
 
