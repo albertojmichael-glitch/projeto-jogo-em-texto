@@ -49,6 +49,24 @@
   border: 2px solid #ccc;
   width: 250px;
   }
+
+  #caixa-aviso {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0px 5px 20px rgba(0,0,0,0.6);
+    z-index: 1000;
+    text-align: center;
+  }
+
+  #caixa-aviso p {
+    color: black;
+    font-size: 22px;
+  }
   
 </style>
 
@@ -81,6 +99,11 @@
   <button onclick="cadastrar()">Cadastrar</button>
 
   <p><a href="#" onclick="mostrarLogin()" style="color: green;">Já tem conta? Faça login</a></p>
+  </div>
+
+  <div id="caixa-aviso" style="display: none;">
+    <p id="texto-aviso">mensagem</p>
+    <button onclick="fecharAviso()">OK</button>
   </div>
 
 <script>
