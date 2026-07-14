@@ -173,10 +173,25 @@ function cadastrar() {
   let nomeCriado = document.getElementById("novo-nome").value;
   let senhaCriada = document.getElementById("nova-senha").value;
 
+  if (!nomeCriado || !senhaCriada) {
+    mostrarAviso("Nome de usuário e senha obrigatórios");
+    return;
+  }
+
+  if (nomeCriado.length < 3) {
+    mostrarAviso("Nome de usuário deve ter ao minimo 3 caracteres");
+    return;
+  }
+
+  if (senhaCriada.length < 6) {
+    mostrarAviso("Senha deve ter ao minimo 6 caracteres");
+    return;
+  }
+
   localStorage.setItem("nomeSalvo", nomeCriado);
   localStorage.setItem("senhaSalva", senhaCriada);
 
-  alert("Conta criada! Volte para o login.");
+  mostrarAviso("Conta criada! Volte para o login.");
   mostrarLogin();
 
 }
