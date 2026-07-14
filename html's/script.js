@@ -2,16 +2,28 @@ function trocarpalavra() {
     document.getElementById("green-green-grass-of-home").innerHTML = 'verde verde grama da casa';
 }
 
-function modoEscuro() {
-  document.body.style.backgroundColor = "#222222";
+function alternarTema() {
 
-  document.getElementById("green-green-grass-of-home").style.color = "white";
+    let botaoTema = document.getElementById("btn-modo-escuro");
 
-  document.getElementById("titulo-login").style.color = "white";
-  document.getElementById("titulo-cadastro").style.color = "white";
-  document.getElementById("usuario-nome").style.color = "white";
-  document.getElementById("mister-senha").style.color = "white";
-  
+    if (botaoTema.innerHTML === "🌙") {
+
+      document.body.style.backgroundColor = "#222222";
+      document.getElementById("green-green-grass-of-home").style.color = "white";
+      document.getElementById("titulo-login").style.color = "white";
+      document.getElementById("titulo-cadastro").style.color = "white";
+
+      botaoTema.innerHTML = "☀️";
+    } else {
+
+      document.body.style.backgroundColor = "lightyellow"; 
+      document.getElementById("green-green-grass-of-home").style.color = "red"; 
+      document.getElementById("titulo-login").style.color = "black"; 
+      document.getElementById("titulo-cadastro").style.color = "black";
+
+      botaoTema.innerHTML = "🌙";
+
+    }
 }
 
 function entrar() {
@@ -63,5 +75,5 @@ function mostrarAviso(mensagem) {
 
 function fecharAviso() {
   document.getElementById("caixa-aviso").style.display = "none";
-  
+
 }
